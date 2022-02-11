@@ -37,6 +37,15 @@ PGM_BASE& Pgm()
 }
 
 
+// Similar to PGM_BASE& Pgm(), but return nullptr when a *.ki_face is run from
+// a python script or something else.
+// Therefore here return always nullptr
+PGM_BASE* PgmOrNull()
+{
+    return nullptr;
+}
+
+
 KIFACE_BASE& Kiface()
 {
     static MOCK_KIFACE_BASE kiface;
