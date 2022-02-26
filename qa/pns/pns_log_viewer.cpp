@@ -47,176 +47,6 @@
 #define TOM_EXTRA_DEBUG
 
 
-LABEL_MANAGER::LABEL_MANAGER( KIGFX::GAL* aGal ) : m_gal( aGal )
-{
-
-};
-
-
-LABEL_MANAGER::~LABEL_MANAGER()
-{
-}
-
-
-void LABEL_MANAGER::Add( VECTOR2I target, std::string msg, COLOR4D color )
-{
-    LABEL lbl;
-
-    lbl.m_target = target;
-    lbl.m_msg = msg;
-    lbl.m_color = color;
-    m_gal->SetGlyphSize( VECTOR2D( m_textSize, m_textSize ) );
-
-    KIFONT::FONT* strokeFont = KIFONT::FONT::GetFont( wxEmptyString );
-    UTF8 text( msg );
-    VECTOR2I textDims = strokeFont->StringBoundaryLimits( text, VECTOR2D( m_textSize, m_textSize ),
-                                                          m_textSize/8, false, false );
-
-    lbl.m_bbox.SetOrigin( lbl.m_target - textDims - VECTOR2I( m_textSize, m_textSize ) );
-    lbl.m_bbox.SetSize( textDims );
-    m_labels.push_back( lbl );
-}
-
-
-void LABEL_MANAGER::Add( const SHAPE_LINE_CHAIN& aL, COLOR4D color )
-{
-    for( int i = 0; i < aL.PointCount(); i++ )
-    {
-        char msg[1024];
-        snprintf( msg, sizeof( msg ), "%d", i );
-        Add( aL.CPoint( i ), msg, color );
-    }
-}
-
-void LABEL_MANAGER::Redraw( KIGFX::VIEW_OVERLAY* aOvl )
-{
-    recalculate();
-
-    for( auto& lbl : m_labels )
-    {
-        aOvl->SetIsFill( false );
-        aOvl->SetIsStroke( true );
-        aOvl->SetLineWidth( 10000 );
-        aOvl->SetStrokeColor( lbl.m_color.Brighten( 0.7 ) );
-        aOvl->Rectangle( lbl.m_bbox.GetOrigin(), lbl.m_bbox.GetEnd() );
-        aOvl->BitmapText( lbl.m_msg, lbl.m_bbox.Centre(), ANGLE_HORIZONTAL );
-        VECTOR2I nearest = nearestBoxCorner( lbl.m_bbox, lbl.m_target );
-        aOvl->Line( lbl.m_target, nearest );
-    }
-}
-
-
-VECTOR2I LABEL_MANAGER::nearestBoxCorner( BOX2I b, VECTOR2I p )
-{
-    VECTOR2I ptest[4] = { b.GetPosition(), b.GetPosition() + VECTOR2I( b.GetWidth(), 0 ),
-                          b.GetPosition() + VECTOR2I( b.GetWidth(), b.GetHeight() ),
-                          b.GetPosition() + VECTOR2I( 0, b.GetHeight() ) };
-
-    int      bestDist = INT_MAX;
-    VECTOR2I rv;
-
-    for( int i = 0; i < 4; i++ )
-    {
-        int dist = ( ptest[i] - p ).EuclideanNorm();
-
-        if( dist < bestDist )
-        {
-            bestDist = dist;
-            rv = ptest[i];
-        }
-    }
-
-    return rv;
-}
-
-
-VECTOR2I LABEL_MANAGER::boxMtv( BOX2I b1, BOX2I b2 )
-{
-    VECTOR2I rv( 0, 0 );
-
-    b1.Normalize();
-    b2.Normalize();
-
-    if( !b1.Intersects( b2 ) )
-        return rv;
-
-    int bestDist = INT_MAX;
-
-    VECTOR2I p[4] = { b2.GetPosition(), b2.GetPosition() + VECTOR2I( b2.GetWidth(), 0 ),
-                      b2.GetPosition() + VECTOR2I( b2.GetWidth(), b2.GetHeight() ),
-                      b2.GetPosition() + VECTOR2I( 0, b2.GetHeight() ) };
-
-    for( int i = 0; i < 4; i++ )
-    {
-        if( b1.Contains( p[i] ) )
-        {
-            //   printf("CONT %d\n", i );
-            VECTOR2I dp[4] = { VECTOR2I( b1.GetEnd().x - p[i].x + 1, 0 ),
-                               VECTOR2I( b1.GetPosition().x - p[i].x - 1, 0 ),
-                               VECTOR2I( 0, b1.GetEnd().y - p[i].y + 1 ),
-                               VECTOR2I( 0, b1.GetPosition().y - p[i].y - 1 ) };
-
-            for( int j = 0; j < 4; j++ )
-            {
-                BOX2I btest( b2 );
-                btest.Move( dp[j] );
-
-                if( !b1.Intersects( btest ) )
-                {
-                    int dist = dp[j].EuclideanNorm();
-
-                    if( dist < bestDist )
-                    {
-                        bestDist = dist;
-                        rv = dp[j];
-                    }
-                }
-            }
-        }
-    }
-
-    return rv;
-}
-
-
-void LABEL_MANAGER::recalculate()
-{
-    int iterLimit = 5;
-
-    while( iterLimit > 0 )
-    {
-        printf( "Iter %d\n", iterLimit );
-        bool collisionsFound = false;
-
-        for( int i = 0; i < m_labels.size(); i++ )
-        {
-            for( int j = 0; j < m_labels.size(); j++ )
-            {
-                if( i == j )
-                    continue;
-
-                auto bb_i = m_labels[i].m_bbox;
-                auto bb_j = m_labels[j].m_bbox;
-
-                bb_i.Inflate( 100000 );
-                bb_j.Inflate( 100000 );
-                VECTOR2I mtv = boxMtv( bb_i, bb_j );
-
-                if( mtv.x || mtv.y )
-                {
-                    m_labels[i].m_bbox.Move( -mtv );
-                    collisionsFound = true;
-                }
-            }
-        }
-
-        if( !collisionsFound )
-            break;
-
-        iterLimit--;
-    }
-}
-
 
 class WX_SHAPE_TREE_ITEM_DATA : public wxClientData
 {
@@ -294,7 +124,20 @@ PNS_LOG_VIEWER_FRAME::PNS_LOG_VIEWER_FRAME( wxFrame* frame ) : PNS_LOG_VIEWER_FR
     auto settings = static_cast<KIGFX::PCB_RENDER_SETTINGS*>(
             m_galPanel->GetView()->GetPainter()->GetSettings() );
 
-    settings->m_ZoneDisplayMode = ZONE_DISPLAY_MODE::SHOW_FILLED;
+
+    PCB_DISPLAY_OPTIONS opts;
+
+    opts.m_ZoneDisplayMode = ZONE_DISPLAY_MODE::SHOW_ZONE_OUTLINE;
+
+    double opacity = 0.5;
+
+    opts.m_TrackOpacity = opacity;     ///< Opacity override for all tracks
+    opts.m_ViaOpacity = opacity;       ///< Opacity override for all types of via
+    opts.m_PadOpacity = opacity;       ///< Opacity override for SMD pads and PTHs
+    opts.m_ZoneOpacity = opacity;      ///< Opacity override for filled zone areas
+
+    settings->LoadDisplayOptions( opts );
+
 
     m_listPopupMenu = new wxMenu( wxT( "" ) );
     m_listPopupMenu->Append( ID_LIST_COPY, wxT( "Copy selected geometry" ), wxT( "" ),
@@ -412,7 +255,7 @@ void PNS_LOG_VIEWER_FRAME::drawLoggedItems( int iter )
             case SH_LINE_CHAIN:
             {
                 auto lc = static_cast<SHAPE_LINE_CHAIN*>( sh );
-                m_overlay->AnnotatedPolyline( *lc, ent->m_name, ent->m_hasLabels && isSelected );
+                m_overlay->AnnotatedPolyline( *lc, ent->m_name.ToStdString(), ent->m_hasLabels && isSelected );
 
                 break;
 
@@ -461,7 +304,7 @@ void PNS_LOG_VIEWER_FRAME::SetLogFile( PNS_LOG_FILE* aLog )
     m_env.reset( new PNS_TEST_ENVIRONMENT );
 
     m_env->SetMode( PNS::PNS_MODE_ROUTE_SINGLE );
-    m_env->ReplayLog( m_logFile.get() );
+    m_env->ReplayLog( m_logFile.get(), 0, 0, -1);
 
     auto dbgd = m_env->GetDebugDecorator();
     int  n_stages = dbgd->GetStageCount();
@@ -694,7 +537,15 @@ void PNS_LOG_VIEWER_FRAME::buildListTree( wxTreeListItem item,
     else
     {
         ritem = m_itemList->AppendItem( item, "Child" );
-        m_itemList->SetItemText( ritem, 0, "Shapes" );
+        int n_verts = 0;
+        for(auto sh : ent->m_shapes )
+        {
+            if ( sh->Type() == SH_LINE_CHAIN )
+            {
+                n_verts += static_cast<const SHAPE_LINE_CHAIN*>( sh )->PointCount();
+            }
+        }
+        m_itemList->SetItemText( ritem, 0, wxString::Format( "Shapes [%d verts]", n_verts ) );
         m_itemList->SetItemText( ritem, 1, ent->m_name );
     }
 
@@ -714,13 +565,30 @@ void PNS_LOG_VIEWER_FRAME::buildListTree( wxTreeListItem item,
 }
 
 
-static void expandAllChildren( wxTreeListCtrl* tree )
+static void expandAllChildren( wxTreeListCtrl* tree, int maxLevel = 0 )
 {
     wxTreeListItem child = tree->GetFirstItem ();
 
     while( child.IsOk() )
     {
-        tree->Expand ( child );
+        WX_SHAPE_TREE_ITEM_DATA* idata =
+                static_cast<WX_SHAPE_TREE_ITEM_DATA*>( tree->GetItemData( child ) );
+
+        if( idata->m_item->m_level > maxLevel )
+            tree->Expand ( child );
+        else
+            tree->Collapse ( child );
+        child = tree->GetNextItem( child );
+    }
+}
+
+static void collapseAllChildren( wxTreeListCtrl* tree )
+{
+    wxTreeListItem child = tree->GetFirstItem ();
+
+    while( child.IsOk() )
+    {
+        tree->Collapse ( child );
         child = tree->GetNextItem( child );
     }
 }
@@ -833,4 +701,90 @@ static bool registered3 = UTILITY_REGISTRY::Register( {
         "render_perftest",
         "Renderer performance test",
         render_perftest_main_func,
+} );
+
+
+VECTOR2I NearestPointFixpt( SEG seg, const VECTOR2I& aP )
+{
+    VECTOR2I d = seg.B - seg.A;
+    SEG::ecoord   l_squared = d.Dot( d );
+
+    if( l_squared == 0 )
+        return seg.A;
+
+    SEG::ecoord t = d.Dot( aP - seg.A );
+
+    if( t < 0 )
+        return seg.A;
+    else if( t > l_squared )
+        return seg.B;
+
+    int xp = rescale( t, (SEG::ecoord) d.x, l_squared );
+    int yp = rescale( t, (SEG::ecoord) d.y, l_squared );
+
+    return seg.A + VECTOR2I( xp, yp );
+}
+
+
+VECTOR2D NearestPointDbl( SEG seg, const VECTOR2I& aP )
+{
+    VECTOR2D d = seg.B - seg.A;
+    double l_squared = d.Dot(d);
+
+    if( l_squared == 0 )
+        return seg.A;
+
+    double t = d.Dot(VECTOR2D( aP - seg.A ) );
+
+    if( t < 0 )
+        return seg.A;
+    else if( t > l_squared )
+        return seg.B;
+
+    double xp = t * d.x / l_squared;
+    double yp = t * d.y / l_squared;
+
+    return VECTOR2D(seg.A) + VECTOR2D( xp, yp );
+}
+
+int ttt_main_func( int argc, char* argv[] )
+{
+    int n = 1000000;
+    std::vector<VECTOR2I> pts;
+    std::vector<SEG> segs;
+    std::vector<VECTOR2D> rv;
+    std::vector<VECTOR2I> rvi;
+
+
+    rv.resize(n);
+    rvi.resize(n);
+
+    for (int i = 0; i < n ;i++)
+    {
+        pts.push_back(VECTOR2I(random()%100000000, random()%100000000));
+        segs.push_back(SEG( VECTOR2I(random()%100000000, random()%100000000), VECTOR2I(random()%100000000, random()%100000000) ) );
+    }
+
+    PROF_TIMER tmrFix("nearest-fixpt");
+    for(int i = 0; i < n ; i++)
+    {
+        rvi[i] = NearestPointFixpt( segs[i], pts[i]);
+    }
+    tmrFix.Show();
+    
+    PROF_TIMER tmrDbl("nearest-double");
+    for(int i = 0; i < n ; i++)
+    {
+        rv[i] = NearestPointDbl( segs[i], pts[i]);
+    }
+    tmrDbl.Show();
+    return 0;
+}
+
+
+
+static bool registered4 = UTILITY_REGISTRY::Register( {
+        "ttt",
+        "Renderer performance test",
+        ttt_main_func,
 } );
