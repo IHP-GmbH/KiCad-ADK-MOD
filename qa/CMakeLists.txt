@@ -47,18 +47,8 @@ add_subdirectory( gerbview )
 add_subdirectory( eeschema )
 add_subdirectory( libs )
 add_subdirectory( pcbnew )
-add_subdirectory( utils/kicad2step )
-# add_subdirectory( libeval_compiler )
-
-if( KICAD_DRC_PROTO )
-    add_subdirectory( drc_proto )
-endif()
+add_subdirectory( unittests )
 
 # Utility/debugging/profiling programs
-add_subdirectory( common_tools )
-add_subdirectory( pcbnew_tools )
-
-if( KICAD_BUILD_PNS_DEBUG_TOOL )
-    add_subdirectory( pns )
-endif()
+add_subdirectory( tools )
 
