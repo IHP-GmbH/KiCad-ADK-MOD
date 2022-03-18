@@ -42,11 +42,6 @@ add_subdirectory( qa_utils )
 add_subdirectory( pcbnew_utils )
 
 # Unit tests
-add_subdirectory( common )
-add_subdirectory( gerbview )
-add_subdirectory( eeschema )
-add_subdirectory( libs )
-add_subdirectory( pcbnew )
 add_subdirectory( unittests )
 
 # Utility/debugging/profiling programs
