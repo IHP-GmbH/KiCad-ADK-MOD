@@ -42,55 +42,6 @@
 #include <wx/log.h>
 #include <wx/mstream.h>
 
-/**
- * Template to compare two floating point values for equality within a required epsilon.
- *
- * @param aFirst value to compare.
- * @param aSecond value to compare.
- * @param aEpsilon allowed error.
- * @return true if the values considered equal within the specified epsilon, otherwise false.
- */
-template <class T>
-bool equals( T aFirst, T aSecond, T aEpsilon = static_cast<T>( FLT_EPSILON ) )
-{
-    T diff = fabs( aFirst - aSecond );
-
-    if( diff < aEpsilon )
-    {
-        return true;
-    }
-
-    aFirst = fabs( aFirst );
-    aSecond = fabs( aSecond );
-    T largest = aFirst > aSecond ? aFirst : aSecond;
-
-    if( diff <= largest * aEpsilon )
-    {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Template to compare two VECTOR2<T> values for equality within a required epsilon.
- *
- * @param aFirst value to compare.
- * @param aSecond value to compare.
- * @param aEpsilon allowed error.
- * @return true if the values considered equal within the specified epsilon, otherwise false.
- */
-template <class T>
-bool equals( VECTOR2<T> const& aFirst, VECTOR2<T> const& aSecond,
-             T aEpsilon = static_cast<T>( FLT_EPSILON ) )
-{
-    if( !equals( aFirst.x, aSecond.x, aEpsilon ) )
-    {
-        return false;
-    }
-
-    return equals( aFirst.y, aSecond.y, aEpsilon );
-}
 
 /**
  * Flag to enable the NL_PCBNEW_PLUGIN debug tracing.
@@ -129,7 +80,7 @@ NL_PCBNEW_PLUGIN_IMPL::~NL_PCBNEW_PLUGIN_IMPL()
 
 void NL_PCBNEW_PLUGIN_IMPL::SetFocus( bool aFocus )
 {
-    wxLogTrace( m_logTrace, "NL_PCBNEW_PLUGIN_IMPL::SetFocus %d", aFocus );
+    wxLogTrace( m_logTrace, wxT( "NL_PCBNEW_PLUGIN_IMPL::SetFocus %d" ), aFocus );
     NAV_3D::Write( navlib::focus_k, aFocus );
 }
 
@@ -178,7 +129,7 @@ static CATEGORY_STORE::iterator add_category( std::string     aCategoryPath,
 
 void NL_PCBNEW_PLUGIN_IMPL::exportCommandsAndImages()
 {
-    wxLogTrace( m_logTrace, "NL_PCBNEW_PLUGIN_IMPL::exportCommandsAndImages" );
+    wxLogTrace( m_logTrace, wxT( "NL_PCBNEW_PLUGIN_IMPL::exportCommandsAndImages" ) );
 
     std::list<TOOL_ACTION*> actions = ACTION_MANAGER::GetActionList();
 
@@ -253,13 +204,13 @@ void NL_PCBNEW_PLUGIN_IMPL::exportCommandsAndImages()
                                                    streamBuffer->GetBufferSize() ),
                                       0 );
 
-                wxLogTrace( m_logTrace, "Adding image for : %s", name );
+                wxLogTrace( m_logTrace, wxT( "Adding image for : %s" ), name );
                 vImages.push_back( std::move( tdxImage ) );
             }
         }
 
-        wxLogTrace( m_logTrace, "Inserting command: %s,  description: %s,  in category:  %s", name,
-                    description, iter->first );
+        wxLogTrace( m_logTrace, wxT( "Inserting command: %s,  description: %s,  in category:  %s" ),
+                    name, description, iter->first );
 
         iter->second->push_back(
                 CCommand( std::move( name ), std::move( label ), std::move( description ) ) );
@@ -349,7 +300,8 @@ long NL_PCBNEW_PLUGIN_IMPL::SetCameraMatrix( const navlib::matrix_t& matrix )
     long     result = 0;
     VECTOR2D viewPos( matrix.m4x4[3][0], matrix.m4x4[3][1] );
 
-    if( !equals( m_view->GetCenter(), m_viewPosition ) )
+    if( !equals( m_view->GetCenter(), m_viewPosition,
+                 static_cast<VECTOR2D::coord_type>( FLT_EPSILON ) ) )
     {
         m_view->SetCenter( viewPos + m_view->GetCenter() - m_viewPosition );
         result = navlib::make_result_code( navlib::navlib_errc::error );
@@ -385,7 +337,7 @@ long NL_PCBNEW_PLUGIN_IMPL::SetViewExtents( const navlib::box_t& extents )
     double scale = width / m_viewportWidth * m_view->GetScale();
     m_view->SetScale( scale, m_view->GetCenter() );
 
-    if( !equals( m_view->GetScale(), scale ) )
+    if( !equals( m_view->GetScale(), scale, static_cast<double>( FLT_EPSILON ) ) )
     {
         result = navlib::make_result_code( navlib::navlib_errc::error );
     }
