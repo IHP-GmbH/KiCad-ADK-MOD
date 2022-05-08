@@ -42,7 +42,7 @@ public:
 private:
     std::vector<wxString> getPinNames() const override { return { "+", "-" }; }
 
-    static PARAM::INFO makeParamInfo( wxString name, wxString description, wxString unit );
+    static PARAM::INFO makeParams( wxString aName, wxString aDescription, wxString aUnit );
 };
 
 #endif // SIM_MODEL_BEHAVIORAL_H
