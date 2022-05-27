@@ -30,6 +30,10 @@ endif()
 add_subdirectory( common_tools )
 add_subdirectory( pcbnew_tools )
 
+if( KICAD_BUILD_PEGTL_DEBUG_TOOL )
+    add_subdirectory( pegtl )
+endif()
+
 if( KICAD_BUILD_PNS_DEBUG_TOOL )
     add_subdirectory( pns )
 endif()
