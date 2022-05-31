@@ -34,11 +34,13 @@ public:
     SIM_MODEL_SUBCKT( TYPE aType );
 
     bool ReadSpiceCode( const std::string& aSpiceCode ) override;
-    wxString GenerateSpiceModelLine( const wxString& aModelName ) const;
+    wxString GenerateSpiceModelLine( const wxString& aModelName ) const override;
     std::vector<wxString> GenerateSpiceCurrentNames( const wxString& aRefName ) const override;
     void SetBaseModel( const SIM_MODEL& aBaseModel ) override;
 
 private:
+    bool requiresSpiceModel() const override { return true; }
+
     std::vector<std::unique_ptr<PARAM::INFO>> m_paramInfos;
 };
 
