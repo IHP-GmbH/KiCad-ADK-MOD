@@ -22,8 +22,6 @@
 
 #include <wx/filedlgcustomize.h>
 
-class wxFileDialog;
-
 class FILEDLG_HOOK_NEW_PROJECT : public wxFileDialogCustomizeHook
 {
 public:
@@ -40,6 +38,7 @@ public:
         m_createNewDir = m_cb->GetValue();
     }
 
+    ///< Gets the selected state of the create new directory checkbox
     bool GetCreateNewDir() const { return m_createNewDir; }
 
 private:
