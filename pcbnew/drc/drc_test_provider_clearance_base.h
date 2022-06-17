@@ -38,7 +38,6 @@ public:
     DRC_TEST_PROVIDER_CLEARANCE_BASE () :
             DRC_TEST_PROVIDER(),
             m_board( nullptr ),
-            m_largestClearance( 0 ),
             m_boardOutlineValid( false )
     {
     }
@@ -49,7 +48,6 @@ public:
 
 protected:
     BOARD* m_board;
-    int    m_largestClearance;
     bool   m_boardOutlineValid;
 };
 
