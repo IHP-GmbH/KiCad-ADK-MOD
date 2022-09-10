@@ -2,7 +2,7 @@
  * This program source code file is part of KiCad, a free EDA CAD application.
  *
  * Copyright (C) 2020 Jon Evans <jon@craftyjon.com>
- * Copyright (C) 2020-2021 KiCad Developers, see AUTHORS.txt for contributors.
+ * Copyright (C) 2020-2022 KiCad Developers, see AUTHORS.txt for contributors.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -40,17 +40,6 @@ protected:
     bool TransferDataToWindow() override;
 
     void createSwatches() override;
-
-    enum COLOR_CONTEXT_ID
-    {
-        ID_COPY = wxID_HIGHEST + 1,
-        ID_PASTE,
-        ID_REVERT
-    };
-
-private:
-    PAGE_INFO*   m_page;
-    TITLE_BLOCK* m_titleBlock;
 };
 
 
