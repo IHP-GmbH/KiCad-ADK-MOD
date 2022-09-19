@@ -39,12 +39,22 @@ public:
 };
 
 
+class SPICE_MODEL_PARSER_SUBCKT : public SPICE_MODEL_PARSER
+{
+public:
+    using SPICE_MODEL_PARSER::SPICE_MODEL_PARSER;
+
+    void ReadModel( const wxString& aSpiceCode ) override;
+};
+
+
 class SIM_MODEL_SUBCKT : public SIM_MODEL_SPICE
 {
 public:
-    SIM_MODEL_SUBCKT( SIM_MODEL::TYPE aType );
+    friend class SPICE_MODEL_PARSER_SUBCKT;
 
-    void ReadSpiceCode( const wxString& aSpiceCode ) override;
+    SIM_MODEL_SUBCKT();
+
     void SetBaseModel( const SIM_MODEL& aBaseModel ) override;
 
 protected:
@@ -52,7 +62,6 @@ protected:
 
 private:
     bool requiresSpiceModelLine() const override { return true; }
-
 
     std::vector<std::unique_ptr<PARAM::INFO>> m_paramInfos;
 };
