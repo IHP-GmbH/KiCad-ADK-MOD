@@ -26,18 +26,24 @@
 #define SIM_LIBRARY_SPICE_H
 
 #include <sim/sim_library.h>
+#include <sim/spice_library_parser.h>
 
 
 class SIM_LIBRARY_SPICE : public SIM_LIBRARY
 {
-    // We'll make SIM_LIBRARY have no subclasses probably.
-
 public:
+    friend class SPICE_LIBRARY_PARSER;
+
+    SIM_LIBRARY_SPICE();
+
     // @copydoc SIM_LIBRARY::ReadFile()
     void ReadFile( const wxString& aFilePath ) override;
 
     // @copydoc SIM_LIBRARY::WriteFile()
     void WriteFile( const wxString& aFilePath ) override;
+
+private:
+    std::unique_ptr<SPICE_LIBRARY_PARSER> m_spiceLibraryParser;
 };
 
 #endif // SIM_LIBRARY_SPICE_H
