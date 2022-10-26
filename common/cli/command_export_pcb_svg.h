@@ -21,11 +21,11 @@
 #ifndef COMMAND_EXPORT_PCB_SVG_H
 #define COMMAND_EXPORT_PCB_SVG_H
 
-#include "command.h"
+#include "command_export_pcb_base.h"
 
 namespace CLI
 {
-struct EXPORT_PCB_SVG_COMMAND : public COMMAND
+struct EXPORT_PCB_SVG_COMMAND : public EXPORT_PCB_BASE_COMMAND
 {
     EXPORT_PCB_SVG_COMMAND();
 
