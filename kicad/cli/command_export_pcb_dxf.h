@@ -30,7 +30,7 @@ class EXPORT_PCB_DXF_COMMAND : public EXPORT_PCB_BASE_COMMAND
 public:
     EXPORT_PCB_DXF_COMMAND();
 
-    int Perform( KIWAY& aKiway ) const override;
+    int Perform( KIWAY& aKiway ) override;
 };
 } // namespace CLI
 

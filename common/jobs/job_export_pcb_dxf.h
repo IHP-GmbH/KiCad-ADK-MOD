@@ -35,7 +35,8 @@ public:
             m_plotFootprintValues( true ),
             m_plotRefDes( true ),
             m_plotGraphicItemsUsingContours( true ),
-            m_pageSizeMode( 0 ),
+            m_plotBorderTitleBlocks( false ),
+            m_dxfUnits( DXF_UNITS::INCHES ),
             m_printMaskLayer()
     {
     }
@@ -52,9 +53,8 @@ public:
     bool m_plotFootprintValues;
     bool m_plotRefDes;
     bool m_plotGraphicItemsUsingContours;
+    bool m_plotBorderTitleBlocks;
     DXF_UNITS m_dxfUnits;
-
-    int m_pageSizeMode;
 
     LSET m_printMaskLayer;
 };
