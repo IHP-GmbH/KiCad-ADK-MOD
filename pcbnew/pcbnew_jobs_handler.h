@@ -33,6 +33,7 @@ public:
     int JobExportPdf( JOB* aJob );
     int JobExportGerber( JOB* aJob );
     int JobExportDrill( JOB* aJob );
+    int JobExportPos( JOB* aJob );
 };
 
 #endif
