@@ -34,6 +34,7 @@ public:
     int JobExportGerber( JOB* aJob );
     int JobExportDrill( JOB* aJob );
     int JobExportPos( JOB* aJob );
+    int JobExportFpUpgrade( JOB* aJob );
 };
 
 #endif
