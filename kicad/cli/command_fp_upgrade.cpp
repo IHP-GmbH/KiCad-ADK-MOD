@@ -33,7 +33,8 @@
 CLI::FP_UPGRADE_COMMAND::FP_UPGRADE_COMMAND() : EXPORT_PCB_BASE_COMMAND( "upgrade" )
 {
     m_argParser.add_argument( ARG_FORCE )
-            .help( UTF8STDSTR( _( "Forces the footprint to be resaved regardless of versioning" ) ) )
+            .help( UTF8STDSTR(
+                    _( "Forces the footprint library to be resaved regardless of versioning" ) ) )
             .implicit_value( true )
             .default_value( false );
 }
@@ -47,7 +48,7 @@ int CLI::FP_UPGRADE_COMMAND::Perform( KIWAY& aKiway )
 
     if( !wxDir::Exists( fpJob->m_libraryPath ) )
     {
-        wxFprintf( stderr, _( "Footprint file does not exist or is not accessible\n" ) );
+        wxFprintf( stderr, _( "Footprint path does not exist or is not accessible\n" ) );
         return EXIT_CODES::ERR_INVALID_INPUT_FILE;
     }
 
