@@ -23,14 +23,26 @@
 
 #include "command_export_pcb_base.h"
 
+class JOB_EXPORT_PCB_GERBER;
+
 namespace CLI
 {
+#define ARG_NO_X2 "--no-x2"
+#define ARG_NO_NETLIST "--no-netlist"
+#define ARG_SUBTRACT_SOLDERMASK "--subtract-soldermask"
+#define ARG_DISABLE_APERTURE_MACROS "--disable-aperture-macros"
+#define ARG_PRECISION "--precision"
+
 class EXPORT_PCB_GERBER_COMMAND : public EXPORT_PCB_BASE_COMMAND
 {
 public:
+    EXPORT_PCB_GERBER_COMMAND( const std::string& aName );
     EXPORT_PCB_GERBER_COMMAND();
 
     int Perform( KIWAY& aKiway ) override;
+
+protected:
+    int populateJob( JOB_EXPORT_PCB_GERBER* aJob );
 };
 } // namespace CLI
 
