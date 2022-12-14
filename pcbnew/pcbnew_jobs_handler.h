@@ -25,6 +25,8 @@
 #include <pcb_plot_params.h>
 
 class JOB_EXPORT_PCB_GERBER;
+class JOB_FP_EXPORT_SVG;
+class FOOTPRINT;
 
 class PCBNEW_JOBS_HANDLER : public JOB_DISPATCHER
 {
@@ -39,9 +41,12 @@ public:
     int JobExportDrill( JOB* aJob );
     int JobExportPos( JOB* aJob );
     int JobExportFpUpgrade( JOB* aJob );
+    int JobExportFpSvg( JOB* aJob );
 
 private:
-    void populateGerberPlotOptionsFromJob( PCB_PLOT_PARAMS& aPlotOpts, JOB_EXPORT_PCB_GERBER* aJob );
+    void populateGerberPlotOptionsFromJob( PCB_PLOT_PARAMS&       aPlotOpts,
+                                           JOB_EXPORT_PCB_GERBER* aJob );
+    int  doFpExportSvg( JOB_FP_EXPORT_SVG* aSvgJob, const FOOTPRINT* aFootprint );
 };
 
 #endif
