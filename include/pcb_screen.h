@@ -37,7 +37,7 @@ public:
     /**
      * @param aPageSizeIU is the size of the initial paper page in internal units.
      */
-    PCB_SCREEN( const wxSize& aPageSizeIU );
+    PCB_SCREEN( const VECTOR2I& aPageSizeIU );
 
     PCB_LAYER_ID m_Active_Layer;
     PCB_LAYER_ID m_Route_Layer_TOP;
