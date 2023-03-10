@@ -20,9 +20,6 @@
 #ifndef SYMBOL_DIFF_WIDGET_H
 #define SYMBOL_DIFF_WIDGET_H
 
-#include <wx/panel.h>
-#include <kiway.h>
-#include <gal/gal_display_options.h>
 #include <widgets/symbol_preview_widget.h>
 
 
@@ -34,7 +31,8 @@ class SYMBOL_DIFF_WIDGET: public SYMBOL_PREVIEW_WIDGET
 {
 public:
     /**
-     * Construct a symbol diff widget.
+     * Construct a symbol diff widget, consisting on a canvas for displaying a schematic and
+     * a library symbol, and a slider for fading between the two.
      *
      * @param aParent - parent window
      * @param aCanvasType = the type of canvas (GAL_TYPE_OPENGL or GAL_TYPE_CAIRO only)
