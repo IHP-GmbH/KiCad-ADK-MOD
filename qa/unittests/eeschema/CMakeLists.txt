@@ -25,19 +25,6 @@
 
 include_directories( BEFORE ${INC_BEFORE} )
 
-if( KICAD_SPICE_QA )
-    set( INC_AFTER ${INC_AFTER} ${NGSPICE_INCLUDE_DIR} )
-
-    # Find out the exact libngspice file name
-    get_filename_component( NGSPICE_DLL_ABSPATH "${NGSPICE_DLL}" ABSOLUTE )
-    get_filename_component( NGSPICE_DLL_FILE "${NGSPICE_DLL_ABSPATH}" NAME )
-
-    set_property( SOURCE sim/ngspice.cpp
-        APPEND PROPERTY COMPILE_DEFINITIONS
-        NGSPICE_DLL_FILE="${NGSPICE_DLL_FILE}"
-        )
-endif()
-
 include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include
@@ -51,9 +38,6 @@ include_directories(
 set( QA_EESCHEMA_SRCS
     # need the mock Pgm for many functions
     ${CMAKE_SOURCE_DIR}/qa/mocks/kicad/common_mocks.cpp
-
-    eeschema_test_utils.cpp
-    uuid_test_utils.cpp
 
     # The main test entry points
     test_module.cpp
@@ -88,21 +72,6 @@ set( QA_EESCHEMA_SRCS
     test_sch_symbol.cpp
 )
 
-
-# Spice specific testing routine
-if( KICAD_SPICE_QA )
-    set( QA_EESCHEMA_SRCS
-        ${QA_EESCHEMA_SRCS}
-        # Simulation tests
-        test_netlist_exporter_spice.cpp
-        sim/test_library_spice.cpp
-        sim/test_sim_model_inference.cpp
-        sim/test_sim_model_ngspice.cpp
-        sim/test_sim_regressions.cpp
-        sim/test_ngspice_helpers.cpp
-    )
-endif()
-
 if( WIN32 )
     # We want to declare a resource manifest on Windows to enable UTF8 mode
     # Without UTF8 mode, some random IO tests may fail, we set the active code page on normal kicad to UTF8 as well
@@ -129,23 +98,10 @@ PRIVATE
     qa_utils
     qa_schematic_utils
     markdown_lib
-    ${NGSPICE_LIBRARY}
     ${GDI_PLUS_LIBRARIES}
     Boost::headers
     Boost::unit_test_framework
 )
-
-if( KICAD_SPICE_QA AND MSVC )
-    # Allow for MSVC to run from the build directory
-    add_custom_command( TARGET qa_eeschema POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${NGSPICE_DLL}" "$<TARGET_FILE_DIR:qa_eeschema>"
-        )
-
-    add_custom_command( TARGET qa_eeschema POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${NGSPICE_CM_DIR}" "$<TARGET_FILE_DIR:qa_eeschema>/ngspice"
-        )
-endif()
-
 
 # Eeschema tests, so pretend to be eeschema (for units, etc)
 target_compile_definitions( qa_eeschema
