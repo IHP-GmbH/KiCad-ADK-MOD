@@ -57,10 +57,13 @@ public:
                        int aCommitFlags = 0 ) override;
 
     virtual void Revert() override;
-    COMMIT&      Stage( EDA_ITEM* aItem, CHANGE_TYPE aChangeType ) override;
-    COMMIT&      Stage( std::vector<EDA_ITEM*>& container, CHANGE_TYPE aChangeType ) override;
+    COMMIT&      Stage( EDA_ITEM* aItem, CHANGE_TYPE aChangeType,
+                        BASE_SCREEN* aScreen = nullptr ) override;
+    COMMIT&      Stage( std::vector<EDA_ITEM*>& container, CHANGE_TYPE aChangeType,
+                        BASE_SCREEN* aScreen = nullptr ) override;
     COMMIT&      Stage( const PICKED_ITEMS_LIST& aItems,
-                        UNDO_REDO aModFlag = UNDO_REDO::UNSPECIFIED ) override;
+                        UNDO_REDO aModFlag = UNDO_REDO::UNSPECIFIED,
+                        BASE_SCREEN* aScreen = nullptr ) override;
 
 private:
     EDA_ITEM* parentObject( EDA_ITEM* aItem ) const override;
