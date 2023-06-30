@@ -30,9 +30,9 @@
 #include <settings/settings_manager.h>
 
 
-struct DRC_REGRESSION_TEST_FIXTURE
+struct DRC_SOLDER_MASK_BRIDGING_TEST_FIXTURE
 {
-    DRC_REGRESSION_TEST_FIXTURE() :
+    DRC_SOLDER_MASK_BRIDGING_TEST_FIXTURE() :
             m_settingsManager( true /* headless */ )
     { }
 
@@ -41,7 +41,7 @@ struct DRC_REGRESSION_TEST_FIXTURE
 };
 
 
-BOOST_FIXTURE_TEST_CASE( DRCSolderMaskBridgingTest, DRC_REGRESSION_TEST_FIXTURE )
+BOOST_FIXTURE_TEST_CASE( DRCSolderMaskBridgingTest, DRC_SOLDER_MASK_BRIDGING_TEST_FIXTURE )
 {
     wxString brd_name( wxT( "solder_mask_bridge_test" ) );
     KI_TEST::LoadBoard( m_settingsManager, brd_name, m_board );
