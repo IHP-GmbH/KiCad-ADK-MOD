@@ -42,23 +42,30 @@ GRAPHICS_IMPORTER_PCBNEW::GRAPHICS_IMPORTER_PCBNEW()
 
 VECTOR2I GRAPHICS_IMPORTER_PCBNEW::MapCoordinate( const VECTOR2D& aCoordinate )
 {
-    VECTOR2D coord = ( aCoordinate + GetImportOffsetMM() ) * ImportScalingFactor();
+    VECTOR2D coord = aCoordinate;
+    coord *= GetScale();
+    coord += GetImportOffsetMM();
+    coord *= GetMillimeterToIuFactor();
+
     return VECTOR2I( KiROUND( coord.x ), KiROUND( coord.y ) );
 }
 
 
 int GRAPHICS_IMPORTER_PCBNEW::MapLineWidth( double aLineWidth )
 {
+    VECTOR2D factor = ImportScalingFactor();
+    double   scale = ( factor.x + factor.y ) * 0.5;
+
     if( aLineWidth <= 0.0 )
-        return int( GetLineWidthMM() * ImportScalingFactor() );
+        return int( GetLineWidthMM() * scale );
 
     // aLineWidth is in mm:
-    return int( aLineWidth * ImportScalingFactor() );
+    return int( aLineWidth * scale );
 }
 
 
 void GRAPHICS_IMPORTER_PCBNEW::AddLine( const VECTOR2D& aOrigin, const VECTOR2D& aEnd,
-                                        double aWidth )
+                                        double aWidth, const COLOR4D& aColor )
 {
     std::unique_ptr<PCB_SHAPE> line( createDrawing() );
     line->SetShape( SHAPE_T::SEGMENT );
@@ -76,7 +83,7 @@ void GRAPHICS_IMPORTER_PCBNEW::AddLine( const VECTOR2D& aOrigin, const VECTOR2D&
 
 
 void GRAPHICS_IMPORTER_PCBNEW::AddCircle( const VECTOR2D& aCenter, double aRadius, double aWidth,
-                                          bool aFilled )
+                                          bool aFilled, const COLOR4D& aColor )
 {
     std::unique_ptr<PCB_SHAPE> circle( createDrawing() );
     circle->SetShape( SHAPE_T::CIRCLE );
@@ -91,7 +98,8 @@ void GRAPHICS_IMPORTER_PCBNEW::AddCircle( const VECTOR2D& aCenter, double aRadiu
 
 
 void GRAPHICS_IMPORTER_PCBNEW::AddArc( const VECTOR2D& aCenter, const VECTOR2D& aStart,
-                                       const EDA_ANGLE& aAngle, double aWidth )
+                                       const EDA_ANGLE& aAngle, double aWidth,
+                                       const COLOR4D& aColor )
 {
     std::unique_ptr<PCB_SHAPE> arc( createDrawing() );
     arc->SetShape( SHAPE_T::ARC );
@@ -120,7 +128,7 @@ void GRAPHICS_IMPORTER_PCBNEW::AddArc( const VECTOR2D& aCenter, const VECTOR2D& 
     if( radius >= rd_max_value )
     {
         // Arc cannot be handled: convert it to a segment
-        AddLine( aStart, end, aWidth );
+        AddLine( aStart, end, aWidth, aColor );
         return;
     }
 
@@ -130,7 +138,8 @@ void GRAPHICS_IMPORTER_PCBNEW::AddArc( const VECTOR2D& aCenter, const VECTOR2D& 
 }
 
 
-void GRAPHICS_IMPORTER_PCBNEW::AddPolygon( const std::vector<VECTOR2D>& aVertices, double aWidth )
+void GRAPHICS_IMPORTER_PCBNEW::AddPolygon( const std::vector<VECTOR2D>& aVertices, double aWidth,
+                                           const COLOR4D& aColor )
 {
     std::vector<VECTOR2I> convertedPoints;
     convertedPoints.reserve( aVertices.size() );
@@ -158,15 +167,15 @@ void GRAPHICS_IMPORTER_PCBNEW::AddPolygon( const std::vector<VECTOR2D>& aVertice
 void GRAPHICS_IMPORTER_PCBNEW::AddText( const VECTOR2D& aOrigin, const wxString& aText,
                                         double aHeight, double aWidth, double aThickness,
                                         double aOrientation, GR_TEXT_H_ALIGN_T aHJustify,
-                                        GR_TEXT_V_ALIGN_T aVJustify )
+                                        GR_TEXT_V_ALIGN_T aVJustify, const COLOR4D& aColor )
 {
     std::unique_ptr<PCB_TEXT> textItem = createText();
     textItem->SetLayer( GetLayer() );
     textItem->SetTextThickness( MapLineWidth( aThickness ) );
     textItem->SetTextPos( MapCoordinate( aOrigin ) );
     textItem->SetTextAngle( EDA_ANGLE( aOrientation, DEGREES_T ) );
-    textItem->SetTextWidth( aWidth * ImportScalingFactor() );
-    textItem->SetTextHeight( aHeight * ImportScalingFactor() );
+    textItem->SetTextWidth( aWidth * ImportScalingFactor().x );
+    textItem->SetTextHeight( aHeight * ImportScalingFactor().y );
     textItem->SetVertJustify( aVJustify );
     textItem->SetHorizJustify( aHJustify );
     textItem->SetText( aText );
@@ -177,7 +186,7 @@ void GRAPHICS_IMPORTER_PCBNEW::AddText( const VECTOR2D& aOrigin, const wxString&
 
 void GRAPHICS_IMPORTER_PCBNEW::AddSpline( const VECTOR2D& aStart, const VECTOR2D& BezierControl1,
                                           const VECTOR2D& BezierControl2, const VECTOR2D& aEnd,
-                                          double aWidth )
+                                          double aWidth, const COLOR4D& aColor )
 {
     std::unique_ptr<PCB_SHAPE> spline( createDrawing() );
     spline->SetShape( SHAPE_T::BEZIER );

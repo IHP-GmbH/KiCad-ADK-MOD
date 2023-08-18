@@ -59,22 +59,25 @@ public:
         return m_layer;
     }
 
-    void AddLine( const VECTOR2D& aOrigin, const VECTOR2D& aEnd, double aWidth ) override;
+    void AddLine( const VECTOR2D& aOrigin, const VECTOR2D& aEnd, double aWidth,
+                  const COLOR4D& aColor ) override;
 
-    void AddCircle( const VECTOR2D& aOrigin, double aRadius, double aWidth, bool aFilled ) override;
+    void AddCircle( const VECTOR2D& aOrigin, double aRadius, double aWidth, bool aFilled,
+                    const COLOR4D& aColor ) override;
 
     void AddArc( const VECTOR2D& aCenter, const VECTOR2D& aStart, const EDA_ANGLE& aAngle,
-                 double aWidth ) override;
+                 double aWidth, const COLOR4D& aColor ) override;
 
-    void AddPolygon( const std::vector< VECTOR2D >& aVertices, double aWidth ) override;
+    void AddPolygon( const std::vector<VECTOR2D>& aVertices, double aWidth,
+                     const COLOR4D& aColor ) override;
 
     void AddText( const VECTOR2D& aOrigin, const wxString& aText, double aHeight, double aWidth,
                   double aThickness, double aOrientation, GR_TEXT_H_ALIGN_T aHJustify,
-                  GR_TEXT_V_ALIGN_T aVJustify ) override;
+                  GR_TEXT_V_ALIGN_T aVJustify, const COLOR4D& aColor ) override;
 
     void AddSpline( const VECTOR2D& aStart, const VECTOR2D& aBezierControl1,
-                    const VECTOR2D& aBezierControl2, const VECTOR2D& aEnd,
-                    double aWidth ) override;
+                    const VECTOR2D& aBezierControl2, const VECTOR2D& aEnd, double aWidth,
+                    const COLOR4D& aColor ) override;
 
     /**
      * Convert an imported coordinate to a board coordinate, according to the internal units,
