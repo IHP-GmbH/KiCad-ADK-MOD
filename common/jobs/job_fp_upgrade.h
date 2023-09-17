@@ -21,19 +21,14 @@
 #ifndef JOB_FP_UPGRADE_H
 #define JOB_FP_UPGRADE_H
 
+#include <kicommon.h>
 #include <wx/string.h>
 #include "job.h"
 
-class JOB_FP_UPGRADE : public JOB
+class KICOMMON_API JOB_FP_UPGRADE : public JOB
 {
 public:
-    JOB_FP_UPGRADE( bool aIsCli ) :
-            JOB( "fpupgrade", aIsCli ),
-            m_libraryPath(),
-            m_outputLibraryPath(),
-            m_force( false )
-    {
-    }
+    JOB_FP_UPGRADE( bool aIsCli );
 
     wxString m_libraryPath;
     wxString m_outputLibraryPath;
