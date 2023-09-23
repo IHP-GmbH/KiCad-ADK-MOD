@@ -26,8 +26,6 @@
 
 #include <wx/window.h>
 
-class COMMON_SETTINGS;
-
 /**
  * Class to handle configuration and automatic determination of the DPI
  * scale to use for canvases. This has several sources and the availability of
@@ -44,7 +42,9 @@ public:
      * @param aWindow a WX window to use for automatic DPI determination
      * @return the scaling factor (1.0 = no scaling)
      */
-    DPI_SCALING( COMMON_SETTINGS* aConfig, const wxWindow* aWindow );
+    DPI_SCALING(){};
+
+    virtual ~DPI_SCALING() {}
 
     /**
      * Get the DPI scale from all known sources in order:
@@ -53,7 +53,7 @@ public:
      * * user's environment variables, if set and according to platform
      * * WX's internal determination of the DPI scaling (WX > 3.1)
      */
-    double GetScaleFactor() const;
+    virtual double GetScaleFactor() const = 0;
 
     /**
      * Get the content scale factor, which may be different from the scale
@@ -61,12 +61,12 @@ public:
      * user interface elements (fonts, icons, etc) whereas the scale
      * factor should be used for scaling canvases.
      */
-    double GetContentScaleFactor() const;
+    virtual double GetContentScaleFactor() const = 0;
 
     /**
      * Is the current value auto scaled, or is it user-set in the config
      */
-    bool GetCanvasIsAutoScaled() const;
+    virtual bool GetCanvasIsAutoScaled() const = 0;
 
     /**
      * Set the common DPI config in a given config object
@@ -76,7 +76,7 @@ public:
      * @param aAuto   store a value meaning "no user-set scale"
      * @param aValue  the value to store (ignored if aAuto set)
      */
-    void SetDpiConfig( bool aAuto, double aValue );
+    virtual void SetDpiConfig( bool aAuto, double aValue ) = 0;
 
     /*
      * Get the maximum scaling factor that should be presented to the user.
@@ -94,18 +94,6 @@ public:
      * Get the "default" scaling factor to use if not other config is available
      */
     static double GetDefaultScaleFactor();
-
-private:
-    /**
-     * The configuration object to use to get/set user setting. nullptr
-     * if only automatic options are wanted
-     */
-    COMMON_SETTINGS* m_config;
-
-    /**
-     * The WX window to use for WX's automatic DPI checking
-     */
-    const wxWindow* m_window;
 };
 
 #endif // DPI_SCALING__H
