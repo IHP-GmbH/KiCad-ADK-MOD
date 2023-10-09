@@ -63,9 +63,9 @@ int GRAPHICS_IMPORTER_LIB_SYMBOL::MapLineWidth( double aLineWidth )
 }
 
 
-STROKE_PARAMS GRAPHICS_IMPORTER_LIB_SYMBOL::MapStrokeParams( const STROKE_PARAMS& aStroke )
+STROKE_PARAMS GRAPHICS_IMPORTER_LIB_SYMBOL::MapStrokeParams( const IMPORTED_STROKE& aStroke )
 {
-    int width = aStroke.GetWidth();
+    double width = aStroke.GetWidth();
 
     return STROKE_PARAMS( width != -1 ? MapLineWidth( width ) : -1, aStroke.GetPlotStyle(),
                           aStroke.GetColor() );
@@ -73,7 +73,7 @@ STROKE_PARAMS GRAPHICS_IMPORTER_LIB_SYMBOL::MapStrokeParams( const STROKE_PARAMS
 
 
 void GRAPHICS_IMPORTER_LIB_SYMBOL::AddLine( const VECTOR2D& aStart, const VECTOR2D& aEnd,
-                                            const STROKE_PARAMS& aStroke )
+                                            const IMPORTED_STROKE& aStroke )
 {
     VECTOR2I pt0 = MapCoordinate( aStart );
     VECTOR2I pt1 = MapCoordinate( aEnd );
@@ -94,7 +94,7 @@ void GRAPHICS_IMPORTER_LIB_SYMBOL::AddLine( const VECTOR2D& aStart, const VECTOR
 
 
 void GRAPHICS_IMPORTER_LIB_SYMBOL::AddCircle( const VECTOR2D& aCenter, double aRadius,
-                                              const STROKE_PARAMS& aStroke, bool aFilled,
+                                              const IMPORTED_STROKE& aStroke, bool aFilled,
                                               const COLOR4D& aFillColor )
 {
     std::unique_ptr<LIB_SHAPE> circle = std::make_unique<LIB_SHAPE>( m_symbol, SHAPE_T::CIRCLE );
@@ -110,7 +110,7 @@ void GRAPHICS_IMPORTER_LIB_SYMBOL::AddCircle( const VECTOR2D& aCenter, double aR
 
 
 void GRAPHICS_IMPORTER_LIB_SYMBOL::AddArc( const VECTOR2D& aCenter, const VECTOR2D& aStart,
-                                           const EDA_ANGLE& aAngle, const STROKE_PARAMS& aStroke )
+                                           const EDA_ANGLE& aAngle, const IMPORTED_STROKE& aStroke )
 {
     std::unique_ptr<LIB_SHAPE> arc = std::make_unique<LIB_SHAPE>( m_symbol, SHAPE_T::ARC );
     arc->SetUnit( m_unit );
@@ -149,7 +149,7 @@ void GRAPHICS_IMPORTER_LIB_SYMBOL::AddArc( const VECTOR2D& aCenter, const VECTOR
 
 
 void GRAPHICS_IMPORTER_LIB_SYMBOL::AddPolygon( const std::vector<VECTOR2D>& aVertices,
-                                               const STROKE_PARAMS& aStroke, bool aFilled,
+                                               const IMPORTED_STROKE& aStroke, bool aFilled,
                                                const COLOR4D& aFillColor )
 {
     std::vector<VECTOR2I> convertedPoints;
@@ -204,7 +204,7 @@ void GRAPHICS_IMPORTER_LIB_SYMBOL::AddText( const VECTOR2D& aOrigin, const wxStr
 void GRAPHICS_IMPORTER_LIB_SYMBOL::AddSpline( const VECTOR2D& aStart,
                                               const VECTOR2D& aBezierControl1,
                                               const VECTOR2D& aBezierControl2, const VECTOR2D& aEnd,
-                                              const STROKE_PARAMS& aStroke )
+                                              const IMPORTED_STROKE& aStroke )
 {
     std::unique_ptr<LIB_SHAPE> spline = std::make_unique<LIB_SHAPE>( m_symbol, SHAPE_T::BEZIER );
     spline->SetUnit( m_unit );

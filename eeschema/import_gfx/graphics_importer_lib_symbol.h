@@ -41,15 +41,15 @@ public:
     GRAPHICS_IMPORTER_LIB_SYMBOL( LIB_SYMBOL* aSymbol, int aUnit );
 
     void AddLine( const VECTOR2D& aStart, const VECTOR2D& aEnd,
-                  const STROKE_PARAMS& aStroke ) override;
+                  const IMPORTED_STROKE& aStroke ) override;
 
-    void AddCircle( const VECTOR2D& aCenter, double aRadius, const STROKE_PARAMS& aStroke,
+    void AddCircle( const VECTOR2D& aCenter, double aRadius, const IMPORTED_STROKE& aStroke,
                     bool aFilled, const COLOR4D& aFillColor = COLOR4D::UNSPECIFIED ) override;
 
     void AddArc( const VECTOR2D& aCenter, const VECTOR2D& aStart, const EDA_ANGLE& aAngle,
-                 const STROKE_PARAMS& aStroke ) override;
+                 const IMPORTED_STROKE& aStroke ) override;
 
-    void AddPolygon( const std::vector<VECTOR2D>& aVertices, const STROKE_PARAMS& aStroke,
+    void AddPolygon( const std::vector<VECTOR2D>& aVertices, const IMPORTED_STROKE& aStroke,
                      bool aFilled, const COLOR4D& aFillColor = COLOR4D::UNSPECIFIED ) override;
 
     void AddText( const VECTOR2D& aOrigin, const wxString& aText, double aHeight, double aWidth,
@@ -59,7 +59,7 @@ public:
 
     void AddSpline( const VECTOR2D& aStart, const VECTOR2D& aBezierControl1,
                     const VECTOR2D& aBezierControl2, const VECTOR2D& aEnd,
-                    const STROKE_PARAMS& aStroke ) override;
+                    const IMPORTED_STROKE& aStroke ) override;
 
     /**
      * Convert an imported coordinate to a board coordinate, according to the internal units,
@@ -77,7 +77,7 @@ public:
      */
     int MapLineWidth( double aLineWidth );
 
-    STROKE_PARAMS MapStrokeParams( const STROKE_PARAMS& aStroke );
+    STROKE_PARAMS MapStrokeParams( const IMPORTED_STROKE& aStroke );
 
     LIB_SYMBOL* m_symbol;
     int         m_unit;
