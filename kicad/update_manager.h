@@ -29,12 +29,14 @@
 class PROGRESS_REPORTER;
 struct BACKGROUND_JOB;
 
+class wxWindow;
+
 class UPDATE_MANAGER
 {
 public:
     UPDATE_MANAGER();
 
-    void CheckForUpdate();
+    void CheckForUpdate( wxWindow* aNoticeParent );
     int PostRequest( const wxString& aUrl, std::string aRequestBody, std::ostream* aOutput,
                                            PROGRESS_REPORTER* aReporter, const size_t aSizeLimit );
 
