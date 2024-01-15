@@ -393,7 +393,19 @@ bool DIALOG_TABLECELL_PROPERTIES::TransferDataFromWindow()
         m_table->SetSeparatorsStroke( stroke );
     }
 
-    m_cell->SetText( m_textCtrl->GetValue() );
+    wxString txt = m_textCtrl->GetValue();
+
+#ifdef __WXMAC__
+    // On macOS CTRL+Enter produces '\r' instead of '\n' regardless of EOL setting.
+    // Replace it now.
+    txt.Replace( "\r", "\n" );
+#elif defined( __WINDOWS__ )
+    // On Windows, a new line is coded as \r\n.  We use only \n in kicad files and in
+    // drawing routines so strip the \r char.
+    txt.Replace( "\r", "" );
+#endif
+
+    m_cell->SetText( txt );
 
     if( m_fontCtrl->HaveFontSelection() )
     {

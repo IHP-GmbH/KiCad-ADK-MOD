@@ -21,16 +21,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-#ifndef SCH_TABLE_TOOL_H
-#define SCH_TABLE_TOOL_H
+#ifndef SCH_EDIT_TABLE_TOOL_H
+#define SCH_EDIT_TABLE_TOOL_H
 
 #include <tools/ee_tool_base.h>
+#include <tool/edit_table_tool_base.h>
+#include <sch_table.h>
+#include <sch_tablecell.h>
+#include <sch_commit.h>
 
 
 class SCH_EDIT_FRAME;
 
 
-class SCH_EDIT_TABLE_TOOL : public EE_TOOL_BASE<SCH_EDIT_FRAME>
+class SCH_EDIT_TABLE_TOOL : public EE_TOOL_BASE<SCH_EDIT_FRAME>,
+                            public EDIT_TABLE_TOOL_BASE<SCH_TABLE, SCH_TABLECELL, SCH_COMMIT>
 {
 public:
     SCH_EDIT_TABLE_TOOL();
@@ -39,19 +44,28 @@ public:
     /// @copydoc TOOL_INTERACTIVE::Init()
     bool Init() override;
 
-    int AddRowAbove( const TOOL_EVENT& aEvent );
-    int AddRowBelow( const TOOL_EVENT& aEvent );
-    int AddColumnBefore( const TOOL_EVENT& aEvent );
-    int AddColumnAfter( const TOOL_EVENT& aEvent );
-    int DeleteRows( const TOOL_EVENT& aEvent );
-    int DeleteColumns( const TOOL_EVENT& aEvent );
+    int AddRowAbove( const TOOL_EVENT& aEvent )     { return doAddRowAbove( aEvent ); }
+    int AddRowBelow( const TOOL_EVENT& aEvent )     { return doAddRowBelow( aEvent ); }
+    int AddColumnBefore( const TOOL_EVENT& aEvent ) { return doAddColumnBefore( aEvent ); }
+    int AddColumnAfter( const TOOL_EVENT& aEvent )  { return doAddColumnAfter( aEvent ); }
+    int DeleteRows( const TOOL_EVENT& aEvent )      { return doDeleteRows( aEvent ); }
+    int DeleteColumns( const TOOL_EVENT& aEvent )   { return doDeleteColumns( aEvent ); }
 
-    int MergeCells( const TOOL_EVENT& aEvent );
-    int UnmergeCells( const TOOL_EVENT& aEvent );
+    int MergeCells( const TOOL_EVENT& aEvent )      { return doMergeCells( aEvent ); }
+    int UnmergeCells( const TOOL_EVENT& aEvent )    { return doUnmergeCells( aEvent ); }
 
 private:
     ///< Set up handlers for various events.
     void setTransitions() override;
+
+private:
+    TOOL_MANAGER* getToolMgr() override { return m_toolMgr; }
+    BASE_SCREEN* getScreen() override { return m_frame->GetScreen(); }
+
+    const SELECTION& getTableCellSelection() override;
+    void clearSelection() override { m_toolMgr->RunAction( EE_ACTIONS::clearSelection ); };
+
+    SCH_TABLECELL* copyCell( SCH_TABLECELL* aSource ) override;
 };
 
-#endif //SCH_TABLE_TOOL_H
+#endif //SCH_EDIT_TABLE_TOOL_H
