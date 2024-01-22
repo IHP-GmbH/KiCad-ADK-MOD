@@ -60,7 +60,7 @@
 			)
 			(layer "F.Mask"
 				(type "Top Solder Mask")
-				(color "Green")
+				(color "Blue")
 				(thickness 0.01)
 			)
 			(layer "F.Cu"
@@ -115,7 +115,7 @@
 			)
 			(layer "B.Mask"
 				(type "Bottom Solder Mask")
-				(color "Green")
+				(color "Blue")
 				(thickness 0.01)
 			)
 			(layer "B.Paste"
@@ -17996,7 +17996,7 @@
 			(solder_mask_margin 0.102)
 			(uuid "f375844e-1b9c-4884-9e25-21223581c925")
 		)
-		(model "${KIPRJMOD}/3dmodels/434121025816.step"
+		(model "${KIPRJMOD}/tinytapeout-kicad-libs/3dmodels/434121025816.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -25441,7 +25441,7 @@
 		(descr "Wurth Small Compact SMT with Raised Actuator 2.54 mm,8poles")
 		(tags "DIP switch")
 		(property "Reference" "SW4"
-			(at 11.61 1.8 0)
+			(at 11.61 1.8 180)
 			(layer "F.SilkS")
 			(uuid "7c127e78-5274-4e0d-812d-1ecc22f32ff0")
 			(effects
@@ -25500,7 +25500,7 @@
 			)
 		)
 		(property "Characteristics" "8 POS SPST DIP"
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "97c62029-1df0-4df4-b6b5-3b5be6a93f1e")
@@ -25512,7 +25512,7 @@
 			)
 		)
 		(property "MPN" "418121270808"
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "55128689-a903-46ed-a2ba-0d4034e38efe")
@@ -25524,7 +25524,7 @@
 			)
 		)
 		(property "MPN_ALT" "219-8MST"
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "b8073fa4-4d86-4c50-b9b5-72c28bdf405c")
@@ -26039,9 +26039,9 @@
 			(pintype "passive")
 			(uuid "ca8e58a7-3914-4e4e-a7f3-ed91a061b282")
 		)
-		(model ":PSY3D:dips/SMD DIP SWITCH 8P.step"
+		(model "${KIPRJMOD}/tinytapeout-kicad-libs/3dmodels/418121270808.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 3.1)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -26835,7 +26835,7 @@
 			)
 		)
 		(property "Characteristics" ""
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "578f9b8f-311d-4f14-9870-bbb09677c422")
@@ -26847,7 +26847,7 @@
 			)
 		)
 		(property "DigikeyPN" "W25Q32JVSSIQ-ND"
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "00d1cf42-132d-40c4-8cbb-99df9dc75816")
@@ -26859,7 +26859,7 @@
 			)
 		)
 		(property "MPN" "W25Q32JVSSIQ"
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "2dd0af52-b95e-4a6d-a885-28c4d8c148b2")
@@ -27146,7 +27146,7 @@
 			(pintype "power_in")
 			(uuid "5919d590-9bbc-43f8-8813-04306c58752c")
 		)
-		(model ":KICAD6_3DMODEL_DIR:Package_SO.3dshapes/SO-8_5.3x6.2mm_P1.27mm.step"
+		(model "${KICAD7_3DMODEL_DIR}/Package_SO.3dshapes/SO-8_5.3x6.2mm_P1.27mm.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -30027,7 +30027,7 @@
 			(pintype "power_in")
 			(uuid "aa9c9933-55f4-414a-9bae-aacb1b40ba3c")
 		)
-		(model ":KICAD6_3DMODEL_DIR:Package_SO.3dshapes/SO-8_5.3x6.2mm_P1.27mm.step"
+		(model "${KICAD7_3DMODEL_DIR}/Package_SO.3dshapes/SO-8_5.3x6.2mm_P1.27mm.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -38291,7 +38291,7 @@
 			(solder_mask_margin 0.102)
 			(uuid "04fb2210-8ef3-4433-a6e2-38add27937a9")
 		)
-		(model "${KIPRJMOD}/3dmodels/434121025816.step"
+		(model "${KIPRJMOD}/tinytapeout-kicad-libs/3dmodels/434121025816.step"
 			(offset
 				(xyz 0 0 0)
 			)
