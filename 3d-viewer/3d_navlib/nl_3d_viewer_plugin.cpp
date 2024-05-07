@@ -25,20 +25,17 @@
 
 
 NL_3D_VIEWER_PLUGIN::NL_3D_VIEWER_PLUGIN( EDA_3D_CANVAS* aViewport )
- : m_impl( nullptr )
 {
     if( ADVANCED_CFG::GetCfg().m_Use3DConnexionDriver
         && KIPLATFORM::DRIVERS::Valid3DConnexionDriverVersion() )
     {
-        m_impl = new NL_3D_VIEWER_PLUGIN_IMPL( aViewport );
+        m_impl = std::make_unique<NL_3D_VIEWER_PLUGIN_IMPL>( aViewport, "KiCAD 3D" );
+        m_impl->Connect();
     }
 }
 
 
-NL_3D_VIEWER_PLUGIN::~NL_3D_VIEWER_PLUGIN()
-{
-    delete m_impl;
-}
+NL_3D_VIEWER_PLUGIN::~NL_3D_VIEWER_PLUGIN() = default;
 
 
 void NL_3D_VIEWER_PLUGIN::SetFocus( bool focus )

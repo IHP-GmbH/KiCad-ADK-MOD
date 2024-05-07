@@ -26,6 +26,8 @@
 #ifndef NL_3D_VIEWER_PLUGIN_H_
 #define NL_3D_VIEWER_PLUGIN_H_
 
+#include <memory>
+
 // Forward declarations.
 class EDA_3D_CANVAS;
 class NL_3D_VIEWER_PLUGIN_IMPL;
@@ -54,7 +56,7 @@ public:
     void SetFocus( bool aFocus = true );
 
 private:
-    NL_3D_VIEWER_PLUGIN_IMPL* m_impl;
+    std::unique_ptr<NL_3D_VIEWER_PLUGIN_IMPL> m_impl;
 };
 
 #endif // NL_3D_VIEWER_PLUGIN_H_
