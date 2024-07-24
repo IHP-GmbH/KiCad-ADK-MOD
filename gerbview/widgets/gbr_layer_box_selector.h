@@ -23,35 +23,30 @@
  */
 
 #ifndef GBR_LAYER_BOX_SELECTOR_H
-#define GBR_LAYER_BOX_SELECTOR_H 1
+#define GBR_LAYER_BOX_SELECTOR_H
+
+#include <memory>
 
 #include <widgets/layer_box_selector.h>
 
+class LAYER_PRESENTATION;
 
 // class to display a layer list in GerbView.
 class GBR_LAYER_BOX_SELECTOR : public LAYER_BOX_SELECTOR
 {
 public:
-    GBR_LAYER_BOX_SELECTOR( wxWindow* parent, wxWindowID id,
-                            const wxPoint& pos = wxDefaultPosition,
-                            const wxSize& size = wxDefaultSize,
-                            int n = 0, const wxString choices[] = nullptr ) :
-        LAYER_BOX_SELECTOR( parent, id, pos, size, n, choices )
-    {
-        m_layerhotkeys = false;
-    }
+    GBR_LAYER_BOX_SELECTOR( wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition,
+                            const wxSize& size = wxDefaultSize, int n = 0,
+                            const wxString choices[] = nullptr );
 
     // Reload the Layers names and bitmaps
     void Resync() override;
 
-    // Return a color index from the layer id
-    COLOR4D getLayerColor( int aLayer ) const override;
-
     // Return true if the layer id is enabled (i.e. is it should be displayed)
     bool isLayerEnabled( int aLayer ) const override { return true; }
 
-    // Return the name of the layer id
-    wxString getLayerName( int aLayer ) const override;
+private:
+    std::unique_ptr<LAYER_PRESENTATION> m_layerPresentation;
 };
 
 #endif //GBR_LAYER_BOX_SELECTOR_H
