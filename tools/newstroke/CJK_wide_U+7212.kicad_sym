@@ -15213,7 +15213,7 @@
 		(symbol "U+7247__片_0_1"
 			(polyline
 				(pts
-					(xy 6.4389 20.1676) (xy 33.7947 20.1676)
+					(xy 6.731 20.193) (xy 34.0868 20.193)
 				)
 				(stroke
 					(width 0)
@@ -97179,18 +97179,6 @@
 			)
 			(polyline
 				(pts
-					(xy 9.6774 11.5316) (xy 24.003 11.5316)
-				)
-				(stroke
-					(width 0)
-					(type solid)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
 					(xy 10.4775 19.5326) (xy 15.621 17.4752)
 				)
 				(stroke
@@ -97227,18 +97215,6 @@
 			)
 			(polyline
 				(pts
-					(xy 20.9169 21.1836) (xy 11.5062 11.7602)
-				)
-				(stroke
-					(width 0)
-					(type solid)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
 					(xy 24.8793 15.113) (xy 33.6042 11.2522)
 				)
 				(stroke
@@ -97263,7 +97239,19 @@
 			)
 			(polyline
 				(pts
-					(xy 16.6878 29.5148) (xy 16.0782 24.003) (xy 11.5824 19.812)
+					(xy 16.6878 29.5148) (xy 16.256 26.416) (xy 14.986 22.733) (xy 11.5824 19.812)
+				)
+				(stroke
+					(width 0)
+					(type solid)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 20.9169 21.1836) (xy 15.875 15.367) (xy 9.652 11.557) (xy 23.876 11.557)
 				)
 				(stroke
 					(width 0)
@@ -205682,7 +205670,7 @@
 		(symbol "U+7530__田_0_1"
 			(polyline
 				(pts
-					(xy 0.6858 1.2954) (xy 33.7947 1.2954)
+					(xy 0.635 1.27) (xy 33.655 1.27)
 				)
 				(stroke
 					(width 0)
@@ -205694,7 +205682,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0.6858 14.3256) (xy 33.7947 14.3256)
+					(xy 0.635 14.351) (xy 33.782 14.351)
 				)
 				(stroke
 					(width 0)
@@ -205706,7 +205694,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0.6858 27.0256) (xy 0.6858 -0.762)
+					(xy 0.635 27.051) (xy 0.635 -0.762)
 				)
 				(stroke
 					(width 0)
@@ -205718,7 +205706,7 @@
 			)
 			(polyline
 				(pts
-					(xy 16.8783 27.0256) (xy 16.8783 1.397)
+					(xy 16.891 27.051) (xy 16.891 1.27)
 				)
 				(stroke
 					(width 0)
@@ -205730,7 +205718,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0.6858 27.0256) (xy 33.7566 27.0256) (xy 33.7185 -0.762)
+					(xy 0.635 27.051) (xy 33.782 27.051) (xy 33.782 -0.762)
 				)
 				(stroke
 					(width 0)
@@ -206427,7 +206415,7 @@
 		(symbol "U+7535__电_0_1"
 			(polyline
 				(pts
-					(xy 0.5334 8.4074) (xy 29.6799 8.4074)
+					(xy 0.508 8.382) (xy 29.591 8.382)
 				)
 				(stroke
 					(width 0)
@@ -206439,7 +206427,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0.5334 16.383) (xy 29.6799 16.383)
+					(xy 0.508 16.383) (xy 29.591 16.383)
 				)
 				(stroke
 					(width 0)
@@ -206451,7 +206439,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0.5334 24.2824) (xy 0.5334 6.1976)
+					(xy 15.748 -0.889) (xy 32.131 -0.889)
 				)
 				(stroke
 					(width 0)
@@ -206463,7 +206451,7 @@
 			)
 			(polyline
 				(pts
-					(xy 15.5448 -0.8636) (xy 32.1564 -0.8636)
+					(xy 15.748 29.464) (xy 15.748 -0.889)
 				)
 				(stroke
 					(width 0)
@@ -206475,7 +206463,7 @@
 			)
 			(polyline
 				(pts
-					(xy 15.6972 29.5148) (xy 15.6972 -0.0762)
+					(xy 33.1089 5.2324) (xy 32.131 -0.889)
 				)
 				(stroke
 					(width 0)
@@ -206487,23 +206475,11 @@
 			)
 			(polyline
 				(pts
-					(xy 33.1089 5.2324) (xy 32.4231 -0.5842)
+					(xy 0.508 7.112) (xy 0.508 24.257) (xy 29.591 24.257) (xy 29.591 7.112)
 				)
 				(stroke
 					(width 0)
-					(type solid)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0.5334 24.2824) (xy 29.6418 24.2824) (xy 29.6037 8.509)
-				)
-				(stroke
-					(width 0)
-					(type solid)
+					(type default)
 				)
 				(fill
 					(type none)
@@ -291291,7 +291267,19 @@
 		(symbol "U+767D__白_0_1"
 			(polyline
 				(pts
-					(xy 0.5334 1.9304) (xy 33.7947 1.9304)
+					(xy 0.508 1.778) (xy 33.782 1.778)
+				)
+				(stroke
+					(width 0)
+					(type solid)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 0.508 23.368) (xy 0.508 -0.508)
 				)
 				(stroke
 					(width 0)
@@ -291315,7 +291303,7 @@
 			)
 			(polyline
 				(pts
-					(xy 0.5334 23.4188) (xy 0.5334 -0.6858)
+					(xy 16.383 29.591) (xy 13.335 24.892)
 				)
 				(stroke
 					(width 0)
@@ -291327,19 +291315,7 @@
 			)
 			(polyline
 				(pts
-					(xy 15.4305 29.4132) (xy 13.0302 23.5966)
-				)
-				(stroke
-					(width 0)
-					(type solid)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0.5334 23.4188) (xy 33.7185 23.4188) (xy 33.6042 -0.508)
+					(xy 0.508 23.368) (xy 33.782 23.368) (xy 33.782 -0.508)
 				)
 				(stroke
 					(width 0)
@@ -291452,31 +291428,31 @@
 			)
 			(polyline
 				(pts
-					(xy 5.6769 1.4732) (xy 29.337 1.4732)
-				)
-				(stroke
-					(width 0)
-					(type solid)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 5.6769 10.8966) (xy 29.337 10.8966)
-				)
-				(stroke
-					(width 0)
-					(type solid)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
 					(xy 5.6769 20.066) (xy 5.6769 -0.762)
+				)
+				(stroke
+					(width 0)
+					(type solid)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 5.715 1.524) (xy 29.464 1.524)
+				)
+				(stroke
+					(width 0)
+					(type solid)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 5.715 10.922) (xy 29.464 10.922)
 				)
 				(stroke
 					(width 0)
@@ -291500,7 +291476,7 @@
 			)
 			(polyline
 				(pts
-					(xy 5.6769 20.066) (xy 29.337 20.066) (xy 29.4132 -0.762)
+					(xy 5.6769 20.066) (xy 29.464 20.066) (xy 29.464 -0.762)
 				)
 				(stroke
 					(width 0)
