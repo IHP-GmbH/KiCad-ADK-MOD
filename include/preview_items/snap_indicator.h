@@ -21,8 +21,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-#ifndef __SNAP_INDICATOR_H
-#define __SNAP_INDICATOR_H
+#pragma once
 
 #include <origin_viewitem.h>
 #include <geometry/point_types.h>
@@ -72,5 +71,3 @@ private:
 };
 
 } // namespace KIGFX
-
-#endif
