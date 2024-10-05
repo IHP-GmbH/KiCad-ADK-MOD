@@ -22,6 +22,7 @@
 
 class JOBSET;
 struct JOBSET_OUTPUT;
+struct JOBSET_JOB;
 class KIWAY;
 class REPORTER;
 
@@ -32,6 +33,9 @@ public:
 
     bool RunJobsAllOutputs( bool aBail = false );
     bool RunJobsForOutput( JOBSET_OUTPUT* aOutput, bool aBail = false );
+
+private:
+    int runSpecialExecute( JOBSET_JOB* aJob );
 
 private:
     KIWAY*     m_kiway;
