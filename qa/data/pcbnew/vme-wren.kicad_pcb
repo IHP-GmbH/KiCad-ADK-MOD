@@ -1502881,7 +1502881,8 @@
 		(min_thickness 0.25)
 		(filled_areas_thickness no)
 		(placement
-			(expr "A.memberOfSheet('/io_drivers_fp/bank0/io01/')")
+			(enabled yes)
+			(sheetname "/io_drivers_fp/bank0/io01/")
 		)
 		(fill
 			(thermal_gap 0.5)
@@ -1502911,7 +1502912,8 @@
 		(min_thickness 0.25)
 		(filled_areas_thickness no)
 		(placement
-			(expr "A.memberOfSheet('/io_drivers_fp/bank0/io34/')")
+			(enabled yes)
+			(sheetname "/io_drivers_fp/bank0/io34/")
 		)
 		(fill
 			(thermal_gap 0.5)
