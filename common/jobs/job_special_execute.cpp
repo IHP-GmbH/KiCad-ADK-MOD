@@ -36,8 +36,8 @@ JOB_SPECIAL_EXECUTE::JOB_SPECIAL_EXECUTE( bool aIsCli ) :
 
 wxString JOB_SPECIAL_EXECUTE::GetDescription()
 {
-	return wxString( "Execute command: " ) + m_command;
+    return wxString( "Execute command: " ) + m_command;
 }
 
-REGISTER_JOB( special_execute, _HKI( "Execute Command" ), KIWAY::KIWAY_FACE_COUNT,
+REGISTER_JOB( special_execute, _HKI( "Special: Execute Command" ), KIWAY::KIWAY_FACE_COUNT,
               JOB_SPECIAL_EXECUTE );
