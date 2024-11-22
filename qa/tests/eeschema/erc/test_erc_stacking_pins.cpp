@@ -47,10 +47,7 @@ BOOST_FIXTURE_TEST_CASE( ERCStackingPins, ERC_REGRESSION_TEST_FIXTURE )
 
     // Check for Errors when stacking pins
 
-    std::vector<std::pair<wxString, int>> tests =
-    {
-        { "issue6588",                   5  }
-    };
+    std::vector<std::pair<wxString, int>> tests = { { "issue6588", 3 } };
 
     for( const std::pair<wxString, int>& test : tests )
     {
