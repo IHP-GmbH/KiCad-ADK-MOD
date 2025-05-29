@@ -22,10 +22,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-#include <wx/bmpcbox.h>
+#include <widgets/wx_bitmap_combobox.h>
 #include <pin_type.h>
 
-class PINSHAPE_COMBOBOX : public wxBitmapComboBox
+class PINSHAPE_COMBOBOX : public WX_BITMAP_COMBOBOX
 {
 public:
     PINSHAPE_COMBOBOX( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& value = wxEmptyString,
