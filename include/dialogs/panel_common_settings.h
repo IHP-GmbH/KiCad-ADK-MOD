@@ -21,15 +21,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-#ifndef KICAD_DIALOG_SUITE_OPTIONS_H
-#define KICAD_DIALOG_SUITE_OPTIONS_H
+#pragma once
 
 #include <dialogs/panel_common_settings_base.h>
 
 
 class COMMON_SETTINGS;
-class DIALOG_SHIM;
-class STEPPED_SLIDER;
 
 
 class PANEL_COMMON_SETTINGS : public PANEL_COMMON_SETTINGS_BASE
@@ -64,5 +61,3 @@ private:
     void ShowFileManagerWidgets( bool aBool );
     void setPdfViewerPathState();
 };
-
-#endif //KICAD_DIALOG_SUITE_OPTIONS_H
