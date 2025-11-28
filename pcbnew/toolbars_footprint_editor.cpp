@@ -52,6 +52,7 @@ std::optional<TOOLBAR_CONFIGURATION> FOOTPRINT_EDIT_TOOLBAR_SETTINGS::DefaultToo
               .AppendAction( ACTIONS::toggleGridOverrides )
               .AppendAction( PCB_ACTIONS::togglePolarCoords )
               .AppendGroup( TOOLBAR_GROUP_CONFIG( _( "Units" ) )
+                            .AddAction( ACTIONS::micrometersUnits )
                             .AddAction( ACTIONS::millimetersUnits )
                             .AddAction( ACTIONS::inchesUnits )
                             .AddAction( ACTIONS::milsUnits ) )

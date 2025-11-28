@@ -1133,6 +1133,15 @@ TOOL_ACTION ACTIONS::millimetersUnits( TOOL_ACTION_ARGS()
         .Flags( AF_NONE )
         .Parameter( EDA_UNITS::MM ) );
 
+TOOL_ACTION ACTIONS::micrometersUnits( TOOL_ACTION_ARGS()
+        .Name( "common.Control.micrometerUnits" )
+        .Scope( AS_GLOBAL )
+        .FriendlyName( _( "Micrometers" ) )
+        .ToolbarState( TOOLBAR_STATE::TOGGLE )
+        .Icon( BITMAPS::unit_mm )
+        .Flags( AF_NONE )
+        .Parameter( EDA_UNITS::UM ) );
+
 TOOL_ACTION ACTIONS::updateUnits( TOOL_ACTION_ARGS()
         .Name( "common.Control.updateUnits" )
         .ToolbarState( TOOLBAR_STATE::HIDDEN )

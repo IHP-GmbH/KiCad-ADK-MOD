@@ -818,6 +818,7 @@ void COMMON_TOOLS::setTransitions()
     Go( &COMMON_TOOLS::SwitchUnits,         ACTIONS::inchesUnits.MakeEvent() );
     Go( &COMMON_TOOLS::SwitchUnits,         ACTIONS::milsUnits.MakeEvent() );
     Go( &COMMON_TOOLS::SwitchUnits,         ACTIONS::millimetersUnits.MakeEvent() );
+    Go( &COMMON_TOOLS::SwitchUnits,         ACTIONS::micrometersUnits.MakeEvent() );
     Go( &COMMON_TOOLS::ToggleUnits,         ACTIONS::toggleUnits.MakeEvent() );
     Go( &COMMON_TOOLS::TogglePolarCoords,   ACTIONS::togglePolarCoords.MakeEvent() );
     Go( &COMMON_TOOLS::ResetLocalCoords,    ACTIONS::resetLocalCoords.MakeEvent() );

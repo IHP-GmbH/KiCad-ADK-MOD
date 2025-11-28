@@ -455,7 +455,7 @@ wxString EDA_UNIT_UTILS::UI::MessageTextFromValue( const EDA_IU_SCALE& aIuScale,
     switch( aUnits )
     {
     default:
-    case EDA_UNITS::UM:          format = short_form ? wxT( "%.0f" ) : wxT( "%.1f" ); break;
+    case EDA_UNITS::UM:          format = short_form ? wxT( "%.0f" ) : wxT( "%.4f" ); break;
     case EDA_UNITS::MM:          format = short_form ? wxT( "%.3f" ) : wxT( "%.4f" ); break;
     case EDA_UNITS::CM:          format = short_form ? wxT( "%.3f" ) : wxT( "%.5f" ); break;
     case EDA_UNITS::MILS:        format = short_form ? wxT( "%.0f" ) : wxT( "%.2f" ); break;

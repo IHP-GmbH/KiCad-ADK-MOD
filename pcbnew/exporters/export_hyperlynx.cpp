@@ -49,7 +49,8 @@
 
 static double iu2hyp( double iu )
 {
-    return iu / 1e9 / 0.0254;
+    // Export in meters
+    return iu / ( PCB_IU_PER_MM * 1000.0 );
 }
 
 
@@ -252,7 +253,7 @@ HYPERLYNX_PAD_STACK::HYPERLYNX_PAD_STACK( BOARD* aBoard, const PCB_VIA* aVia )
 bool HYPERLYNX_EXPORTER::generateHeaders()
 {
     m_out->Print( 0, "{VERSION=2.14}\n" );
-    m_out->Print( 0, "{UNITS=ENGLISH LENGTH}\n\n" );
+    m_out->Print( 0, "{UNITS=METRIC LENGTH}\n\n" );
     return true;
 }
 
@@ -390,9 +391,25 @@ bool HYPERLYNX_EXPORTER::writeDevices()
         if( ref.IsEmpty() )
             ref = wxT( "EMPTY" );
 
-        m_out->Print( 1, "(? REF=\"%s\" L=\"%s\")\n",
-                      (const char*) ref.c_str(),
-                      (const char*) layerName.c_str() );
+        wxString gdsPath;
+        PCB_FIELD* gdsField = footprint->GetField( wxT( "GDS_FILE" ) );
+
+        if( gdsField )
+            gdsPath = gdsField->GetText();
+
+        if( !gdsPath.IsEmpty() )
+        {
+            m_out->Print( 1, "(? REF=\"%s\" L=\"%s\" GDS_FILE=\"%s\")\n",
+                          (const char*) ref.c_str(),
+                          (const char*) layerName.c_str(),
+                          (const char*) gdsPath.c_str() );
+        }
+        else
+        {
+            m_out->Print( 1, "(? REF=\"%s\" L=\"%s\")\n",
+                          (const char*) ref.c_str(),
+                          (const char*) layerName.c_str() );
+        }
     }
     m_out->Print( 0, "}\n\n" );
 

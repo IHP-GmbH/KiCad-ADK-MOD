@@ -645,7 +645,12 @@ const std::vector<GRID> APP_SETTINGS_BASE::DefaultGridSizeList() const
                  GRID{ wxEmptyString, wxS( "0.1 mm" ), wxS( "0.1 mm" ) },
                  GRID{ wxEmptyString, wxS( "0.05 mm" ), wxS( "0.05 mm" ) },
                  GRID{ wxEmptyString, wxS( "0.025 mm" ), wxS( "0.025 mm" ) },
-                 GRID{ wxEmptyString, wxS( "0.01 mm" ), wxS( "0.01 mm" ) } };
+                 GRID{ wxEmptyString, wxS( "0.01 mm" ), wxS( "0.01 mm" ) },
+                 GRID{ wxEmptyString, wxS( "0.005 mm" ), wxS( "0.005 mm" ) },
+                 GRID{ wxEmptyString, wxS( "0.001 mm" ), wxS( "0.001 mm" ) },
+                 GRID{ wxEmptyString, wxS( "0.0001 mm" ), wxS( "0.0001 mm" ) },
+                 GRID{ wxEmptyString, wxS( "0.00001 mm" ), wxS( "0.00001 mm" ) },
+                 GRID{ wxEmptyString, wxS( "0.000001 mm" ), wxS( "0.000001 mm" ) } };
     }
 }
 

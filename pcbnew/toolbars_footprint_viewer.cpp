@@ -78,6 +78,7 @@ std::optional<TOOLBAR_CONFIGURATION> FOOTPRINT_VIEWER_TOOLBAR_SETTINGS::DefaultT
               .AppendAction( ACTIONS::toggleGrid )
               .AppendAction( ACTIONS::togglePolarCoords )
               .AppendGroup( TOOLBAR_GROUP_CONFIG( _( "Units" ) )
+                            .AddAction( ACTIONS::micrometersUnits )
                             .AddAction( ACTIONS::millimetersUnits )
                             .AddAction( ACTIONS::inchesUnits )
                             .AddAction( ACTIONS::milsUnits ) )

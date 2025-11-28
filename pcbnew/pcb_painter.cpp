@@ -839,7 +839,12 @@ void PCB_PAINTER::draw( const PCB_TRACK* aTrack, int aLayer )
             track_width = track_width + aTrack->GetSolderMaskExpansion() * 2;
 
         if( aLayer == LAYER_LOCKED_ITEM_SHADOW )
-            track_width = track_width + m_lockedShadowMargin;
+        {
+            int shadowWidth = m_lockedShadowMargin;
+            if( shadowWidth > track_width )
+                shadowWidth = track_width;
+            track_width = track_width + shadowWidth;
+        }
 
         m_gal->DrawSegment( start, end, track_width );
     }
@@ -1166,6 +1171,12 @@ void PCB_PAINTER::draw( const PCB_VIA* aVia, int aLayer )
     {
         double thickness =
             m_holePlatingThickness * ADVANCED_CFG::GetCfg().m_HoleWallPaintingMultiplier;
+
+        // Clamp thickness for nanometer designs to avoid artifacts
+        double maxThickness = getViaDrillSize( aVia ) / 4.0;
+        if( thickness > maxThickness )
+            thickness = maxThickness;
+
         double radius = ( getViaDrillSize( aVia ) / 2.0 ) + thickness;
 
         if( !outline_mode )
@@ -1248,10 +1259,16 @@ void PCB_PAINTER::draw( const PCB_VIA* aVia, int aLayer )
     }
     else if( aLayer == LAYER_LOCKED_ITEM_SHADOW )    // draw a ring around the via
     {
-        m_gal->SetLineWidth( m_lockedShadowMargin );
+        int shadowWidth = m_lockedShadowMargin;
+
+        // Clamp shadow width for nanometer designs where default Silk width is disproportionately large
+        if( shadowWidth > aVia->GetWidth( currentLayer ) )
+            shadowWidth = aVia->GetWidth( currentLayer ) / 4;
+
+        m_gal->SetLineWidth( shadowWidth );
 
         m_gal->DrawCircle( center,
-                           ( aVia->GetWidth( currentLayer ) + m_lockedShadowMargin ) / 2.0 );
+                           ( aVia->GetWidth( currentLayer ) + shadowWidth ) / 2.0 );
     }
 
     // Clearance lines

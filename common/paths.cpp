@@ -220,7 +220,20 @@ wxString PATHS::GetStockDataPath( bool aRespectRunFromBuildDir )
 #elif defined( __WXMSW__ )
         path = getWindowsKiCadRoot() + wxT( "share/kicad" );
 #else
-        path = wxString::FromUTF8Unchecked( KICAD_DATA );
+        wxString appDir;
+        if( wxGetEnv( wxT( "APPDIR" ), &appDir ) && !appDir.IsEmpty() )
+        {
+            wxFileName fn;
+            fn.AssignDir( appDir );
+            fn.AppendDir( wxT( "usr" ) );
+            fn.AppendDir( wxT( "share" ) );
+            fn.AppendDir( wxT( "kicad" ) );
+            path = fn.GetPath();
+        }
+        else
+        {
+            path = wxString::FromUTF8Unchecked( KICAD_DATA );
+        }
 #endif
     }
 

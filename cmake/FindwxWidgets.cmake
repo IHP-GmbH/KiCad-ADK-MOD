@@ -852,6 +852,7 @@ else()
         RESULT_VARIABLE RET
         ERROR_QUIET
         )
+
       if(RET EQUAL 0)
         string(STRIP "${wxWidgets_LIBRARIES}" wxWidgets_LIBRARIES)
         separate_arguments(wxWidgets_LIBRARIES)
@@ -963,6 +964,7 @@ if (_wx_lib_missing)
 endif()
 
 
+
 # Check if a specific version was requested by find_package().
 if(wxWidgets_FOUND)
   find_file(_filename wx/version.h PATHS ${wxWidgets_INCLUDE_DIRS} NO_DEFAULT_PATH)
@@ -1010,6 +1012,7 @@ DBG_MSG("wxWidgets_VERSION_PATCH   : ${wxWidgets_VERSION_PATCH}")
 #=====================================================================
 
 include(FindPackageHandleStandardArgs)
+
 
 find_package_handle_standard_args(wxWidgets
   REQUIRED_VARS wxWidgets_LIBRARIES wxWidgets_INCLUDE_DIRS

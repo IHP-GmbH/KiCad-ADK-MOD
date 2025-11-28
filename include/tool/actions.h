@@ -203,6 +203,7 @@ public:
     static TOOL_ACTION inchesUnits;
     static TOOL_ACTION milsUnits;
     static TOOL_ACTION millimetersUnits;
+    static TOOL_ACTION micrometersUnits;
     static TOOL_ACTION updateUnits;
     static TOOL_ACTION toggleUnits;
     static TOOL_ACTION togglePolarCoords;

@@ -1310,6 +1310,7 @@ void EDA_DRAW_FRAME::setupUnits( APP_SETTINGS_BASE* aCfg )
     case EDA_UNITS::MM:   m_toolManager->RunAction( ACTIONS::millimetersUnits ); break;
     case EDA_UNITS::INCH: m_toolManager->RunAction( ACTIONS::inchesUnits );      break;
     case EDA_UNITS::MILS: m_toolManager->RunAction( ACTIONS::milsUnits );        break;
+    case EDA_UNITS::UM:   m_toolManager->RunAction( ACTIONS::micrometersUnits ); break;
     }
 }
 
