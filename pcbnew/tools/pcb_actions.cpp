@@ -1339,9 +1339,15 @@ TOOL_ACTION PCB_ACTIONS::exportCmpFile( TOOL_ACTION_ARGS()
 
 TOOL_ACTION PCB_ACTIONS::exportHyperlynx( TOOL_ACTION_ARGS()
         .Name( "pcbnew.EditorControl.exportHyperlynx" )
-        .Scope( AS_GLOBAL )
         .FriendlyName( _( "Hyperlynx..." ) )
-        .Icon( BITMAPS::export_step ) );
+        .Tooltip( _( "Export the board in Hyperlynx format." ) )
+        .Icon( BITMAPS::export_file ) );
+
+TOOL_ACTION PCB_ACTIONS::exportChiplet( TOOL_ACTION_ARGS()
+        .Name( "pcbnew.EditorControl.exportChiplet" )
+        .FriendlyName( _( "Chiplet..." ) )
+        .Tooltip( _( "Export the board assembly in .chiplet format." ) )
+        .Icon( BITMAPS::export_file ) );
 
 TOOL_ACTION PCB_ACTIONS::collect3DModels( TOOL_ACTION_ARGS()
         .Name( "pcbnew.EditorControl.collect3DModels" )

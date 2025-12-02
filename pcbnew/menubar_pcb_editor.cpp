@@ -128,6 +128,10 @@ void PCB_EDIT_FRAME::doReCreateMenuBar()
     submenuExport->Add( PCB_ACTIONS::exportSTEP,        ACTION_MENU::NORMAL, _( "STEP/GLB/BREP/XAO/PLY/STL..." ) );
     submenuExport->Add( PCB_ACTIONS::exportCmpFile,     ACTION_MENU::NORMAL, _( "Footprint Association (.cmp) File..." ) );
     submenuExport->Add( PCB_ACTIONS::exportHyperlynx,   ACTION_MENU::NORMAL, _( "Hyperlynx..." ) );
+    submenuExport->Add( PCB_ACTIONS::exportChiplet,     ACTION_MENU::NORMAL, _( "Chiplet..." ) );
+
+    // Add separators between logical groups in export menu
+    submenuExport->AppendSeparator();
 
     if( ADVANCED_CFG::GetCfg().m_ShowPcbnewExportNetlist && m_exportNetlistAction )
         submenuExport->Add( *m_exportNetlistAction );

@@ -81,6 +81,7 @@ public:
     int ExportSTEP( const TOOL_EVENT& aEvent );
     int ExportCmpFile( const TOOL_EVENT& aEvent );
     int ExportHyperlynx( const TOOL_EVENT& aEvent );
+    int ExportChiplet( const TOOL_EVENT& aEvent );
     int GenBOMFileFromBoard( const TOOL_EVENT& aEvent );
     int GenFootprintsReport( const TOOL_EVENT& aEvent );
     int GenD356File( const TOOL_EVENT& aEvent );

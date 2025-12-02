@@ -129,3 +129,31 @@ This document details the technical modifications applied to the KiCad codebase 
         *   If a user adds a field `GDS_FILE` = `/path/to/cell.gds` to a footprint, the exported `.hyp` file will contain:
             `(? REF="U1" L="Top" GDS_FILE="/path/to/cell.gds")`
         *   This enables integration with tools that map PCB components to GDS cells.
+
+## 8. Chiplet Assembly Export (2025-11-28)
+
+**Objective:** Export the board placement and routing data in a `.chiplet` YAML format suitable for 3D assembly tools, linking KiCad footprints to GDSII files and Technology definitions.
+
+### Modified Files:
+*   **`pcbnew/exporters/export_chiplet.cpp`** (New File)
+    *   **Class:** `CHIPLET_EXPORTER`
+    *   **Function:** `Run()`
+    *   **Logic:**
+        1.  Reads project variable `INTERPOSER_LYP` to define the interposer technology.
+        2.  Iterates over footprints to find `LYP_FILE` and `GDS_FILE` fields.
+        3.  Generates a YAML file conforming to the `CHIPLET_FORMAT_SPEC.md`.
+        4.  Exports interposer dimensions (Board Bounding Box) and component positions (in micrometers).
+
+*   **`pcbnew/menubar_pcb_editor.cpp`**
+    *   Added "Chiplet..." to the Export submenu.
+
+*   **`pcbnew/tools/pcb_actions.cpp`** & **`pcb_actions.h`**
+    *   Defined `exportChiplet` action.
+
+*   **`pcbnew/tools/board_editor_control.cpp`**
+    *   Added `ExportChiplet` handler.
+
+### Usage:
+1.  **Setup:** Define `INTERPOSER_LYP` in **Board Setup > Text Variables** with the path to the interposer's `.lyp` file.
+2.  **Components:** Ensure footprints have `GDS_FILE` and optional `LYP_FILE` fields.
+3.  **Export:** **File > Export > Chiplet...**
