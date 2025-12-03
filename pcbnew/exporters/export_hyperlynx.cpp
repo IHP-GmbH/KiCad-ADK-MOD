@@ -398,7 +398,7 @@ bool HYPERLYNX_EXPORTER::writeDevices()
             gdsPath = gdsField->GetText();
 
         double x = iu2hyp( footprint->GetPosition().x );
-        double y = iu2hyp( footprint->GetPosition().y );
+        double y = iu2hyp( -footprint->GetPosition().y ); // Negate Y to match wire coordinate system
         double rot = footprint->GetOrientation().AsDegrees();
 
         if( !gdsPath.IsEmpty() )
