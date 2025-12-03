@@ -141,8 +141,12 @@ This document details the technical modifications applied to the KiCad codebase 
     *   **Logic:**
         1.  Reads project variable `INTERPOSER_LYP` to define the interposer technology.
         2.  Iterates over footprints to find `LYP_FILE` and `GDS_FILE` fields.
-        3.  Generates a YAML file conforming to the `CHIPLET_FORMAT_SPEC.md`.
-        4.  Exports interposer dimensions (Board Bounding Box) and component positions (in micrometers).
+        3.  Calculates component dimensions (`width`, `height`) using the Footprint Courtyard (preferred) or Bounding Box.
+        4.  Transforms coordinates from KiCad Global (Y-down) to Interposer-Relative Cartesian (Y-up).
+            *   Interposer Origin (0,0) is set to the bottom-left of the board bounding box.
+            *   `x_out = x_kicad - interposer_x_min`
+            *   `y_out = interposer_y_max - y_kicad`
+        5.  Generates a YAML file conforming to the `CHIPLET_FORMAT_SPEC.md` with values in micrometers.
 
 *   **`pcbnew/menubar_pcb_editor.cpp`**
     *   Added "Chiplet..." to the Export submenu.

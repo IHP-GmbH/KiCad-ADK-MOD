@@ -192,6 +192,14 @@ private:
         double height = iu2um( boardBBox.GetHeight() );
         double thickness = iu2um( m_board->GetDesignSettings().GetBoardThickness() );
         
+        // KiCad Coordinates of the Interposer Bounding Box
+        // X grows right, Y grows down.
+        // We want to normalize so the bottom-left of the interposer (in Cartesian) is (0,0) or relative.
+        // In KiCad, "Bottom-Left" visually is (x_min, y_max).
+        
+        int interposer_x_min = boardBBox.GetX();
+        int interposer_y_max = boardBBox.GetBottom(); // Y is max at bottom in KiCad
+
         fprintf( f, "  - id: interposer\n" );
         fprintf( f, "    type: interposer\n" );
         if( techMap.count( interposerTechID ) )
@@ -207,8 +215,8 @@ private:
         fprintf( f, "      thickness: %.4f\n", thickness );
         
         fprintf( f, "    position:\n" );
-        fprintf( f, "      x: %.4f\n", iu2um( boardBBox.GetX() ) );
-        fprintf( f, "      y: %.4f\n", iu2um( boardBBox.GetY() ) );
+        fprintf( f, "      x: 0.0\n" );
+        fprintf( f, "      y: 0.0\n" );
         fprintf( f, "      z: 0.0\n" );
         fprintf( f, "\n" );
 
@@ -228,22 +236,16 @@ private:
                 fprintf( f, "    layout: \"%s\"\n", (const char*) gds.utf8_str() );
 
             // Dimensions
-            // Use Courtyard if available, otherwise BoundingBox
             BOX2I fpBBox;
-            // GetCurrentCourtyard returns a SHAPE_POLY_SET, we can get its bbox
-            // But FOOTPRINT has GetBoundingBox() which often includes text.
-            // Try to get body-only bbox if possible.
-            // footprint->GetBoundingBox( false, false ) ? (depends on implementation)
-            // Let's use GetBoundingBox( false ) -> excludes invisible text usually?
-            // Actually, footprint->GetBoundingBox() includes everything visible.
-            
-            // Ideally we want the courtyard bbox.
             fpBBox = footprint->GetBoundingBox(); // Fallback
             
-            // Try to find courtyard for the front layer (usually where component is)
-            // But components can be on Back.
             PCB_LAYER_ID layer = footprint->GetLayer();
-            const SHAPE_POLY_SET& courtyard = footprint->GetCurrentCourtyard();
+            // GetCourtyard returns a reference to SHAPE_POLY_SET for the given layer
+            // We need to determine which courtyard layer to check based on the footprint's side.
+            // Usually F_CrtYd or B_CrtYd.
+            PCB_LAYER_ID courtyardLayer = ( layer == B_Cu ) ? B_CrtYd : F_CrtYd;
+            
+            const SHAPE_POLY_SET& courtyard = footprint->GetCourtyard( courtyardLayer );
             if( !courtyard.IsEmpty() )
             {
                 fpBBox = courtyard.BBox();
@@ -252,21 +254,23 @@ private:
             double compWidth = iu2um( fpBBox.GetWidth() );
             double compHeight = iu2um( fpBBox.GetHeight() );
             
-            // Thickness? KiCad footprints don't usually have thickness unless in 3D settings.
-            // Let's default to 0 or check 3D settings if complex.
-            // For now 0 is safe or skip.
-            
             fprintf( f, "    dimensions:\n" );
             fprintf( f, "      width: %.4f\n", compWidth );
             fprintf( f, "      height: %.4f\n", compHeight );
             fprintf( f, "      thickness: 0.0\n" ); // Placeholder
 
-            // Position
+            // Position Transformation
+            // x_out = x_kicad - interposer_x_min
+            // y_out = interposer_y_max - y_kicad
+            
             VECTOR2I pos = footprint->GetPosition();
             
+            double x_out = iu2um( pos.x - interposer_x_min );
+            double y_out = iu2um( interposer_y_max - pos.y );
+            
             fprintf( f, "    position:\n" );
-            fprintf( f, "      x: %.4f\n", iu2um( pos.x ) );
-            fprintf( f, "      y: %.4f\n", iu2um( pos.y ) );
+            fprintf( f, "      x: %.4f\n", x_out );
+            fprintf( f, "      y: %.4f\n", y_out );
             
             if( footprint->GetLayer() == F_Cu )
                 fprintf( f, "      z: %.4f\n", thickness ); 
