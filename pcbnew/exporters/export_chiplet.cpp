@@ -227,6 +227,40 @@ private:
             if( !gds.IsEmpty() )
                 fprintf( f, "    layout: \"%s\"\n", (const char*) gds.utf8_str() );
 
+            // Dimensions
+            // Use Courtyard if available, otherwise BoundingBox
+            BOX2I fpBBox;
+            // GetCurrentCourtyard returns a SHAPE_POLY_SET, we can get its bbox
+            // But FOOTPRINT has GetBoundingBox() which often includes text.
+            // Try to get body-only bbox if possible.
+            // footprint->GetBoundingBox( false, false ) ? (depends on implementation)
+            // Let's use GetBoundingBox( false ) -> excludes invisible text usually?
+            // Actually, footprint->GetBoundingBox() includes everything visible.
+            
+            // Ideally we want the courtyard bbox.
+            fpBBox = footprint->GetBoundingBox(); // Fallback
+            
+            // Try to find courtyard for the front layer (usually where component is)
+            // But components can be on Back.
+            PCB_LAYER_ID layer = footprint->GetLayer();
+            const SHAPE_POLY_SET& courtyard = footprint->GetCurrentCourtyard();
+            if( !courtyard.IsEmpty() )
+            {
+                fpBBox = courtyard.BBox();
+            }
+
+            double compWidth = iu2um( fpBBox.GetWidth() );
+            double compHeight = iu2um( fpBBox.GetHeight() );
+            
+            // Thickness? KiCad footprints don't usually have thickness unless in 3D settings.
+            // Let's default to 0 or check 3D settings if complex.
+            // For now 0 is safe or skip.
+            
+            fprintf( f, "    dimensions:\n" );
+            fprintf( f, "      width: %.4f\n", compWidth );
+            fprintf( f, "      height: %.4f\n", compHeight );
+            fprintf( f, "      thickness: 0.0\n" ); // Placeholder
+
             // Position
             VECTOR2I pos = footprint->GetPosition();
             
