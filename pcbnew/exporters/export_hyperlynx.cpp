@@ -397,18 +397,24 @@ bool HYPERLYNX_EXPORTER::writeDevices()
         if( gdsField )
             gdsPath = gdsField->GetText();
 
+        double x = iu2hyp( footprint->GetPosition().x );
+        double y = iu2hyp( footprint->GetPosition().y );
+        double rot = footprint->GetOrientation().AsDegrees();
+
         if( !gdsPath.IsEmpty() )
         {
-            m_out->Print( 1, "(? REF=\"%s\" L=\"%s\" GDS_FILE=\"%s\")\n",
+            m_out->Print( 1, "(? REF=\"%s\" L=\"%s\" X=%.9f Y=%.9f R=%.2f GDS_FILE=\"%s\")\n",
                           (const char*) ref.c_str(),
                           (const char*) layerName.c_str(),
+                          x, y, rot,
                           (const char*) gdsPath.c_str() );
         }
         else
         {
-            m_out->Print( 1, "(? REF=\"%s\" L=\"%s\")\n",
+            m_out->Print( 1, "(? REF=\"%s\" L=\"%s\" X=%.9f Y=%.9f R=%.2f)\n",
                           (const char*) ref.c_str(),
-                          (const char*) layerName.c_str() );
+                          (const char*) layerName.c_str(),
+                          x, y, rot );
         }
     }
     m_out->Print( 0, "}\n\n" );
