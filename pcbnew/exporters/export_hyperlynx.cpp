@@ -268,18 +268,13 @@ void HYPERLYNX_EXPORTER::writeSinglePadStack( HYPERLYNX_PAD_STACK& aStack )
 
     m_out->Print( 0, "{PADSTACK=%d, %.9f\n", aStack.m_id, iu2hyp( aStack.m_drill ) );
 
-    if( outLayers == layerMask )
+    // Always list explicit layers instead of using MDEF, to help downstream tools
+    // mapping to specific PDK layers.
+    for( PCB_LAYER_ID l : outLayers.Seq() )
     {
-        m_out->Print( 1, "(\"MDEF\", %s)\n", formatPadShape( aStack ).c_str() );
-    }
-    else
-    {
-        for( PCB_LAYER_ID l : outLayers.Seq() )
-        {
-            m_out->Print( 1, "(\"%s\", %s)\n",
-                          (const char*) m_board->GetLayerName( l ).c_str(),
-                          formatPadShape( aStack ).c_str() );
-        }
+        m_out->Print( 1, "(\"%s\", %s)\n",
+                        (const char*) m_board->GetLayerName( l ).c_str(),
+                        formatPadShape( aStack ).c_str() );
     }
 
     m_out->Print( 0, "}\n\n" );
