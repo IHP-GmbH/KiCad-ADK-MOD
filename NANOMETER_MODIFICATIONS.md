@@ -130,6 +130,24 @@ This document details the technical modifications applied to the KiCad codebase 
             `(? REF="U1" L="Top" GDS_FILE="/path/to/cell.gds")`
         *   This enables integration with tools that map PCB components to GDS cells.
 
+## 8. HyperLynx Export: Explicit Via Layer Stacks (2025-12-04)
+
+**Objective:** Ensure through-hole vias are exported with their full layer stack definitions instead of the optimized `MDEF` (Master Definition) tag. This is required for downstream tools (like `hyp_to_gds.py`) to correctly map via geometry to specific PDK layers.
+
+### Modified Files:
+*   **`pcbnew/exporters/export_hyperlynx.cpp`**
+    *   **Function:** `HYPERLYNX_EXPORTER::writeSinglePadStack`
+    *   **Change:** Removed the `if( outLayers == layerMask )` optimization block that collapsed full-stack vias into `MDEF`.
+    *   **Implication:** All vias now export as an explicit list of layers, e.g.:
+        ```
+        {PADSTACK=14, 0.000003000
+          ("TopMetal2", 0, 0.000005000, 0.000005000, 0.0, M)
+          ("TopMetal1", 0, 0.000005000, 0.000005000, 0.0, M)
+          ...
+        }
+        ```
+
+
 ## 8. Chiplet Assembly Export (2025-11-28)
 
 **Objective:** Export the board placement and routing data in a `.chiplet` YAML format suitable for 3D assembly tools, linking KiCad footprints to GDSII files and Technology definitions.
