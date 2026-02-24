@@ -32,6 +32,7 @@
 
 #include <gal/cairo/cairo_compositor.h>
 #include <wx/log.h>
+#include <algorithm>
 
 using namespace KIGFX;
 
@@ -77,8 +78,9 @@ void CAIRO_COMPOSITOR::Resize( unsigned int aWidth, unsigned int aHeight )
 {
     clean();
 
-    m_width = aWidth;
-    m_height = aHeight;
+    // Guard against zero dimensions that produce invalid Cairo surfaces
+    m_width = std::max( aWidth, 1u );
+    m_height = std::max( aHeight, 1u );
 
     m_stride = cairo_format_stride_for_width( CAIRO_FORMAT_ARGB32, m_width );
     m_bufferSize = m_stride * m_height;

@@ -116,6 +116,15 @@ const VECTOR2D CAIRO_GAL_BASE::xform( double x, double y )
 
     rv.x = m_currentWorld2Screen.xx * x + m_currentWorld2Screen.xy * y + m_currentWorld2Screen.x0;
     rv.y = m_currentWorld2Screen.yx * x + m_currentWorld2Screen.yy * y + m_currentWorld2Screen.y0;
+
+    // Clamp pixel coordinates to prevent pixman integer overflow.
+    // At extreme zoom levels (nanometer-scale designs), off-screen elements can produce
+    // screen coordinates that exceed INT32_MAX when pixman computes region extents,
+    // triggering "pixman_region32_init_rect: Invalid rectangle passed" errors.
+    static constexpr double CAIRO_COORD_LIMIT = 1e8;
+    rv.x = std::clamp( rv.x, -CAIRO_COORD_LIMIT, CAIRO_COORD_LIMIT );
+    rv.y = std::clamp( rv.y, -CAIRO_COORD_LIMIT, CAIRO_COORD_LIMIT );
+
     return rv;
 }
 
@@ -1631,6 +1640,14 @@ void CAIRO_GAL::deinitSurface()
 
 void CAIRO_GAL::allocateBitmaps()
 {
+    // Guard against invalid screen dimensions that would produce
+    // invalid Cairo surfaces and trigger pixman errors
+    if( m_screenSize.x <= 0 || m_screenSize.y <= 0 )
+    {
+        m_wxBufferWidth = 1;
+        m_screenSize = VECTOR2I( 1, 1 );
+    }
+
     m_wxBufferWidth = m_screenSize.x;
 
     // Create buffer, use the system independent Cairo context backend
