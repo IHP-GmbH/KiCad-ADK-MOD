@@ -210,9 +210,9 @@ private:
         fprintf( f, "    top_cell: \"TOP\"\n" ); 
         
         fprintf( f, "    dimensions:\n" );
-        fprintf( f, "      width: %.4f\n", width );
-        fprintf( f, "      height: %.4f\n", height );
-        fprintf( f, "      thickness: %.4f\n", thickness );
+        fprintf( f, "      width: %.6f\n", width );
+        fprintf( f, "      height: %.6f\n", height );
+        fprintf( f, "      thickness: %.6f\n", thickness );
         
         fprintf( f, "    position:\n" );
         fprintf( f, "      x: 0.0\n" );
@@ -255,8 +255,8 @@ private:
             double compHeight = iu2um( fpBBox.GetHeight() );
             
             fprintf( f, "    dimensions:\n" );
-            fprintf( f, "      width: %.4f\n", compWidth );
-            fprintf( f, "      height: %.4f\n", compHeight );
+            fprintf( f, "      width: %.6f\n", compWidth );
+            fprintf( f, "      height: %.6f\n", compHeight );
             fprintf( f, "      thickness: 0.0\n" ); // Placeholder
 
             // Position Transformation
@@ -269,11 +269,11 @@ private:
             double y_out = iu2um( interposer_y_max - pos.y );
             
             fprintf( f, "    position:\n" );
-            fprintf( f, "      x: %.4f\n", x_out );
-            fprintf( f, "      y: %.4f\n", y_out );
-            
+            fprintf( f, "      x: %.6f\n", x_out );
+            fprintf( f, "      y: %.6f\n", y_out );
+
             if( footprint->GetLayer() == F_Cu )
-                fprintf( f, "      z: %.4f\n", thickness ); 
+                fprintf( f, "      z: %.6f\n", thickness ); 
             else
                 fprintf( f, "      z: 0.0\n" );
             
