@@ -1785,7 +1785,7 @@ bool ZONE_FILLER::fillCopperZone( const ZONE* aZone, PCB_LAYER_ID aLayer, PCB_LA
     // min_width should not.  Therefore we subtract epsilon from the min_width when
     // deflating/inflating.
     int half_min_width = aZone->GetMinThickness() / 2;
-    int epsilon = pcbIUScale.mmToIU( 0.001 );
+    int epsilon = std::max( half_min_width / 10, 1 );
 
     // Solid polygons are deflated and inflated during calculations.  Deflating doesn't cause
     // issues, but inflate is tricky as it can create excessively long and narrow spikes for
@@ -2107,7 +2107,7 @@ bool ZONE_FILLER::fillNonCopperZone( const ZONE* aZone, PCB_LAYER_ID aLayer,
     // min_width should not.  Therefore we subtract epsilon from the min_width when
     // deflating/inflating.
     int half_min_width = aZone->GetMinThickness() / 2;
-    int epsilon = pcbIUScale.mmToIU( 0.001 );
+    int epsilon = std::max( half_min_width / 10, 1 );
 
     aFillPolys.Deflate( half_min_width - epsilon, CORNER_STRATEGY::CHAMFER_ALL_CORNERS, m_maxError );
 
@@ -2508,14 +2508,12 @@ bool ZONE_FILLER::addHatchFillTypeOnZone( const ZONE* aZone, PCB_LAYER_ID aLayer
 {
     // Build grid:
 
-    // obviously line thickness must be > zone min thickness.
-    // It can happens if a board file was edited by hand by a python script
-    // Use 1 micron margin to be *sure* there is no issue in Gerber files
-    // (Gbr file unit = 1 or 10 nm) due to some truncation in coordinates or calculations
-    // This margin also avoid problems due to rounding coordinates in next calculations
-    // that can create incorrect polygons
+    // Line thickness must be > zone min thickness (can happen if board file was hand-edited).
+    // Use a proportional margin (10% of MinThickness, minimum 1 IU) to avoid rounding issues
+    // in Gerber files and subsequent polygon calculations.
+    int margin = std::max( aZone->GetMinThickness() / 10, 1 );
     int thickness = std::max( aZone->GetHatchThickness(),
-                              aZone->GetMinThickness() + pcbIUScale.mmToIU( 0.001 ) );
+                              aZone->GetMinThickness() + margin );
 
     int gridsize = thickness + aZone->GetHatchGap();
     int maxError = m_board->GetDesignSettings().m_MaxError;
@@ -2659,6 +2657,7 @@ bool ZONE_FILLER::addHatchFillTypeOnZone( const ZONE* aZone, PCB_LAYER_ID aLayer
     int deflated_thickness = aZone->GetHatchThickness() - aZone->GetMinThickness();
 
     // Don't let thickness drop below maxError * 2 or it might not get reinflated.
+    // For nanometer-scale designs, reduce m_MaxError in Board Setup accordingly.
     deflated_thickness = std::max( deflated_thickness, maxError * 2 );
 
     // The fill has already been deflated to ensure GetMinThickness() so we just have to
