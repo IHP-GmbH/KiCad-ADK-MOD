@@ -430,7 +430,7 @@ bool LINE::Walkaround( const SHAPE_LINE_CHAIN& aObstacle, SHAPE_LINE_CHAIN& aPat
     // point closest to the cursor
     bool inLast  = aObstacle.PointInside( CLastPoint() ) && !aObstacle.PointOnEdge( CLastPoint() );
     bool appendV = true;
-    int  lastDst = INT_MAX;
+    int64_t  lastDst = INT64_MAX;
 
     int i = 0;
 #ifdef TOM_EXTRA_DEBUG
@@ -579,7 +579,7 @@ bool LINE::Walkaround( const SHAPE_LINE_CHAIN& aObstacle, SHAPE_LINE_CHAIN& aPat
                 // just project the normal of the endpoint onto this next segment and call it quits.
                 if( inLast && v_next )
                 {
-                    int d = ( v_next->pos - CLastPoint() ).SquaredEuclideanNorm();
+                    int64_t d = ( v_next->pos - CLastPoint() ).SquaredEuclideanNorm();
 
                     if( d < lastDst )
                     {

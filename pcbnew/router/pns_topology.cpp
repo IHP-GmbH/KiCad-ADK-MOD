@@ -737,13 +737,13 @@ bool TOPOLOGY::AssembleDiffPair( ITEM* aStart, DIFF_PAIR& aPair )
         // Segments are parallel -> compute pair gap
         const VECTOR2I refDir       = refItem->Anchor( 1 ) - refItem->Anchor( 0 );
         const VECTOR2I displacement = refItem->Anchor( 1 ) - coupledItem->Anchor( 1 );
-        gap = (int) std::abs( refDir.Cross( displacement ) / refDir.EuclideanNorm() ) - lp.Width();
+        gap = KiROUND( std::abs( (double) refDir.Cross( displacement ) / refDir.EuclideanNorm() ) ) - lp.Width();
     }
     else if( refItem && refItem->Kind() == ITEM::ARC_T )
     {
         const ARC* refArc = static_cast<ARC*>( refItem );
         const ARC* coupledArc = static_cast<ARC*>( coupledItem );
-        gap = (int) std::abs( refArc->CArc().GetRadius() - coupledArc->CArc().GetRadius() ) - lp.Width();
+        gap = KiROUND( std::abs( refArc->CArc().GetRadius() - coupledArc->CArc().GetRadius() ) ) - lp.Width();
     }
 
     aPair = DIFF_PAIR( lp, ln );

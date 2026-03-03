@@ -2683,8 +2683,8 @@ FOOTPRINT* BOARD::GetFootprint( const VECTOR2I& aPosition, PCB_LAYER_ID aActiveL
 {
     FOOTPRINT* footprint     = nullptr;
     FOOTPRINT* alt_footprint = nullptr;
-    int        min_dim       = 0x7FFFFFFF;
-    int        alt_min_dim   = 0x7FFFFFFF;
+    int64_t    min_dim       = INT64_MAX;
+    int64_t    alt_min_dim   = INT64_MAX;
     bool       current_layer_back = IsBackLayer( aActiveLayer );
 
     for( FOOTPRINT* candidate : m_footprints )
@@ -2708,8 +2708,8 @@ FOOTPRINT* BOARD::GetFootprint( const VECTOR2I& aPosition, PCB_LAYER_ID aActiveL
             int offy = bb.GetY() + bb.GetHeight() / 2;
 
             // off x & offy point to the middle of the box.
-            int dist = ( aPosition.x - offx ) * ( aPosition.x - offx ) +
-                       ( aPosition.y - offy ) * ( aPosition.y - offy );
+            int64_t dist = (int64_t)( aPosition.x - offx ) * ( aPosition.x - offx ) +
+                           (int64_t)( aPosition.y - offy ) * ( aPosition.y - offy );
 
             if( current_layer_back == IsBackLayer( layer ) )
             {
