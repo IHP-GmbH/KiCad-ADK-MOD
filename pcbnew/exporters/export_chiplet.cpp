@@ -183,6 +183,29 @@ private:
             fprintf( f, "\n" );
         }
 
+        // Connection Stacks Section (default bump technology library)
+        fprintf( f, "connection_stacks:\n" );
+        fprintf( f, "  cupillar_opt1:\n" );
+        fprintf( f, "    description: \"PacTech Cu Pillar, Table 6.1 Option 1 (35um opening)\"\n" );
+        fprintf( f, "    layers:\n" );
+        fprintf( f, "      - {name: CuPillar, material: Cu, height: 28.0, diameter: 44.0}\n" );
+        fprintf( f, "      - {name: SnAgCap, material: SnAg, height: 16.0, diameter: 44.0}\n" );
+        fprintf( f, "  cupillar_opt2:\n" );
+        fprintf( f, "    description: \"PacTech Cu Pillar, Table 6.1 Option 2 (40um opening)\"\n" );
+        fprintf( f, "    layers:\n" );
+        fprintf( f, "      - {name: CuPillar, material: Cu, height: 32.0, diameter: 49.0}\n" );
+        fprintf( f, "      - {name: SnAgCap, material: SnAg, height: 16.0, diameter: 49.0}\n" );
+        fprintf( f, "  cupillar_opt3:\n" );
+        fprintf( f, "    description: \"PacTech Cu Pillar, Table 6.1 Option 3 (45um opening)\"\n" );
+        fprintf( f, "    layers:\n" );
+        fprintf( f, "      - {name: CuPillar, material: Cu, height: 42.0, diameter: 54.0}\n" );
+        fprintf( f, "      - {name: SnAgCap, material: SnAg, height: 19.0, diameter: 54.0}\n" );
+        fprintf( f, "  sbump_sac305:\n" );
+        fprintf( f, "    description: \"PacTech SAC305 solder bump (80um ball)\"\n" );
+        fprintf( f, "    layers:\n" );
+        fprintf( f, "      - {name: SolderBall, material: SAC305, height: 80.0, diameter: 80.0}\n" );
+        fprintf( f, "\n" );
+
         // Components Section
         fprintf( f, "components:\n" );
 
@@ -225,15 +248,27 @@ private:
         {
             wxString ref = footprint->GetReference();
             wxString gds = footprint->GetField( wxT( "GDS_FILE" ) ) ? footprint->GetField( wxT( "GDS_FILE" ) )->GetText() : wxString("");
-            
+            wxString orient = footprint->GetField( wxT( "ORIENTATION" ) ) ? footprint->GetField( wxT( "ORIENTATION" ) )->GetText() : wxString("");
+            bool isFlipChip = ( orient == wxT( "flip_chip" ) );
+
             fprintf( f, "  - id: %s\n", (const char*) ref.utf8_str() );
-            fprintf( f, "    type: die\n" ); 
-            
+            fprintf( f, "    type: die\n" );
+
             if( m_componentTechs.count( footprint ) )
                 fprintf( f, "    technology: %s\n", (const char*) m_componentTechs[footprint].utf8_str() );
 
+            if( isFlipChip )
+            {
+                fprintf( f, "    connection: cupillar_opt2\n" );
+            }
+
             if( !gds.IsEmpty() )
                 fprintf( f, "    layout: \"%s\"\n", (const char*) gds.utf8_str() );
+
+            if( isFlipChip )
+            {
+                fprintf( f, "    orientation: flip_chip\n" );
+            }
 
             // Dimensions
             BOX2I fpBBox;
@@ -272,8 +307,10 @@ private:
             fprintf( f, "      x: %.6f\n", x_out );
             fprintf( f, "      y: %.6f\n", y_out );
 
-            if( footprint->GetLayer() == F_Cu )
-                fprintf( f, "      z: %.6f\n", thickness ); 
+            if( isFlipChip )
+                fprintf( f, "      z: 0.0\n" ); // Auto-calculated by Chiplet Studio from connection stack
+            else if( footprint->GetLayer() == F_Cu )
+                fprintf( f, "      z: %.6f\n", thickness );
             else
                 fprintf( f, "      z: 0.0\n" );
             
