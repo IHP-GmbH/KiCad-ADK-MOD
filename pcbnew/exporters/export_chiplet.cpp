@@ -101,13 +101,14 @@ private:
     {
         // Data Gathering
         std::map<wxString, wxString> techMap; // TechID -> LypPath
-        std::vector<FOOTPRINT*> components;
+        std::vector<FOOTPRINT*> components;     // chiplet dies
+        std::vector<FOOTPRINT*> ioPadComponents; // wire-bond / I/O pads, nested under interposer
 
         // 1. Identify Interposer Technology
         wxString interposerLyp = "";
         if ( m_board->GetProperties().count( "INTERPOSER_LYP" ) )
             interposerLyp = m_board->GetProperties().at( "INTERPOSER_LYP" );
-        
+
         if( interposerLyp.IsEmpty() )
         {
             // Fallback: Check if defined as a text variable in project settings
@@ -129,11 +130,21 @@ private:
             wxLogWarning( "Interposer LYP path not found. Set 'INTERPOSER_LYP' in Board Setup > Text Variables." );
         }
 
-        // 2. Identify Footprint Technologies
+        // 2. Identify Footprint Technologies and segregate I/O pads from chiplet dies.
+        // Footprints carrying an IO_CLASS field (e.g. "wire_bond") are part of the
+        // interposer itself -- they belong nested under interposer.io_pads, not as
+        // separate top-level die components.
         for( FOOTPRINT* footprint : m_board->Footprints() )
         {
             if( footprint->GetAttributes() & FP_EXCLUDE_FROM_BOM )
                 continue; // Skip virtual components
+
+            wxString ioClass = footprint->GetField( wxT( "IO_CLASS" ) ) ? footprint->GetField( wxT( "IO_CLASS" ) )->GetText() : wxString("");
+            if( !ioClass.IsEmpty() )
+            {
+                ioPadComponents.push_back( footprint );
+                continue;
+            }
 
             // Get Fields
             wxString gdsFile = footprint->GetField( wxT( "GDS_FILE" ) ) ? footprint->GetField( wxT( "GDS_FILE" ) )->GetText() : wxString("");
@@ -151,11 +162,11 @@ private:
                 wxString techID = fn.GetName();
                 techID.Replace( " ", "_" );
                 techID.Replace( ".", "_" );
-                
+
                 techMap[techID] = lypFile;
                 m_componentTechs[footprint] = techID;
             }
-            
+
             components.push_back( footprint );
         }
 
@@ -241,6 +252,58 @@ private:
         fprintf( f, "      x: 0.0\n" );
         fprintf( f, "      y: 0.0\n" );
         fprintf( f, "      z: 0.0\n" );
+
+        // I/O pads nested under the interposer (wire-bond / future flipped_bump / tsv_bump).
+        // Each pad keeps its KiCad reference as id, and its position/size are projected to
+        // interposer-local micrometer coordinates (Y inverted to match the GDS Y-up convention).
+        if( !ioPadComponents.empty() )
+        {
+            fprintf( f, "    io_pads:\n" );
+            for( FOOTPRINT* fp : ioPadComponents )
+            {
+                wxString ref     = fp->GetReference();
+                wxString ioClass = fp->GetField( wxT( "IO_CLASS" ) )->GetText();
+                wxString sizeStr = fp->GetField( wxT( "IO_PAD_SIZE_UM" ) ) ? fp->GetField( wxT( "IO_PAD_SIZE_UM" ) )->GetText() : wxString("");
+
+                double size_x_um = 0.0;
+                double size_y_um = 0.0;
+                if( !sizeStr.IsEmpty() )
+                {
+                    // Expected format: "WxH" e.g. "100x100"
+                    wxArrayString parts = wxSplit( sizeStr, 'x' );
+                    if( parts.size() == 2 )
+                    {
+                        parts[0].ToDouble( &size_x_um );
+                        parts[1].ToDouble( &size_y_um );
+                    }
+                }
+                if( size_x_um <= 0.0 || size_y_um <= 0.0 )
+                {
+                    // Fallback: derive from the first pad's geometry
+                    if( !fp->Pads().empty() )
+                    {
+                        PAD* pad = fp->Pads().front();
+                        size_x_um = iu2um( pad->GetSizeX() );
+                        size_y_um = iu2um( pad->GetSizeY() );
+                    }
+                }
+
+                wxString netName = "";
+                if( !fp->Pads().empty() )
+                    netName = fp->Pads().front()->GetNetname();
+
+                VECTOR2I pos = fp->GetPosition();
+                double x_um = iu2um( pos.x - interposer_x_min );
+                double y_um = iu2um( interposer_y_max - pos.y );
+
+                fprintf( f, "      - id: %s\n", (const char*) ref.utf8_str() );
+                fprintf( f, "        io_class: %s\n", (const char*) ioClass.utf8_str() );
+                fprintf( f, "        net: \"%s\"\n", (const char*) netName.utf8_str() );
+                fprintf( f, "        position: { x: %.6f, y: %.6f }\n", x_um, y_um );
+                fprintf( f, "        size: { x: %.3f, y: %.3f }\n", size_x_um, size_y_um );
+                fprintf( f, "        layer: TopMetal2\n" );
+            }
+        }
         fprintf( f, "\n" );
 
         // 2. Components
