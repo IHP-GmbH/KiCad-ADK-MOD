@@ -254,9 +254,14 @@ private:
         fprintf( f, "      height: %.6f\n", height );
         fprintf( f, "      thickness: %.6f\n", thickness );
         
+        // Position represents where the component's center sits in assembly
+        // space. The interposer's center is at (width/2, height/2) in its own
+        // bottom-left-relative interposer-local frame, which is the shared
+        // assembly frame. Components and io_pads use the same convention
+        // (their KiCad anchor projected to interposer-local).
         fprintf( f, "    position:\n" );
-        fprintf( f, "      x: 0.0\n" );
-        fprintf( f, "      y: 0.0\n" );
+        fprintf( f, "      x: %.6f\n", width / 2.0 );
+        fprintf( f, "      y: %.6f\n", height / 2.0 );
         fprintf( f, "      z: 0.0\n" );
 
         // I/O pads nested under the interposer (wire-bond / future flipped_bump / tsv_bump).
