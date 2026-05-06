@@ -222,6 +222,12 @@ private:
 
         // 1. The Interposer itself
         BOX2I boardBBox = m_board->GetBoardEdgesBoundingBox();
+
+        // Fallback for designs without Edge.Cuts shapes (e.g. nm-scale GDS-derived
+        // interposers): derive the bbox from the union of footprints/tracks/zones.
+        if( !boardBBox.IsValid() || boardBBox.GetWidth() == 0 || boardBBox.GetHeight() == 0 )
+            boardBBox = m_board->ComputeBoundingBox( false );
+
         double width = iu2um( boardBBox.GetWidth() );
         double height = iu2um( boardBBox.GetHeight() );
         double thickness = iu2um( m_board->GetDesignSettings().GetBoardThickness() );
