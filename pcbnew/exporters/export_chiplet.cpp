@@ -175,6 +175,21 @@ private:
         // Header
         fprintf( f, "format_version: \"1.0\"\n\n" );
 
+        // Intermediate-frame marker. KiCad's exporter computes positions
+        // against the PCB Edge.Cuts bounding box, which is generally
+        // shifted relative to the GDS routing bbox. The canonical
+        // .chiplet frame is GDS-bbox-corner; see
+        // chiplet-studio/docs/coord_frame_contract.md (sections 1 and
+        // 4.1). The downstream finalizer (hyp_to_gds.py
+        // --update-chiplet-file) converts to the canonical frame and
+        // strips this block. Readers MUST refuse files with
+        // finalize_required: true.
+        fprintf( f, "_metadata:\n" );
+        fprintf( f, "  frame: pcb-bbox-corner\n" );
+        fprintf( f, "  finalize_required: true\n" );
+        fprintf( f, "  finalizer: \"hyp_to_gds.py --update-chiplet-file\"\n" );
+        fprintf( f, "\n" );
+
         // Assembly Section
         fprintf( f, "assembly:\n" );
         wxString assemblyName = m_board->GetFileName();
@@ -242,6 +257,10 @@ private:
 
         fprintf( f, "  - id: interposer\n" );
         fprintf( f, "    type: interposer\n" );
+        // Per chiplet-studio/docs/coord_frame_contract.md section 2: the
+        // interposer mesh is centered on its own GDS bbox; position
+        // places that bbox center in the canonical frame.
+        fprintf( f, "    anchor: bbox_center\n" );
         if( techMap.count( interposerTechID ) )
             fprintf( f, "    technology: %s\n", (const char*) interposerTechID.utf8_str() );
         
@@ -327,6 +346,11 @@ private:
 
             fprintf( f, "  - id: %s\n", (const char*) ref.utf8_str() );
             fprintf( f, "    type: die\n" );
+            // Per chiplet-studio/docs/coord_frame_contract.md sections 2
+            // and 4.4: dies produced by gds_to_kicad have GDS (0,0) as
+            // the footprint anchor; the mesh is built around that
+            // origin.
+            fprintf( f, "    anchor: gds_origin\n" );
 
             if( m_componentTechs.count( footprint ) )
                 fprintf( f, "    technology: %s\n", (const char*) m_componentTechs[footprint].utf8_str() );
