@@ -273,14 +273,17 @@ private:
         fprintf( f, "      height: %.6f\n", height );
         fprintf( f, "      thickness: %.6f\n", thickness );
         
-        // Position represents where the component's center sits in assembly
-        // space. The interposer's center is at (width/2, height/2) in its own
-        // bottom-left-relative interposer-local frame, which is the shared
-        // assembly frame. Components and io_pads use the same convention
-        // (their KiCad anchor projected to interposer-local).
+        // Position is a placeholder in this intermediate frame. KiCad does
+        // not have access to the interposer GDS bounding box, so it cannot
+        // compute the canonical interposer position (bbox center in the
+        // GDS-bbox-corner frame). The downstream finalizer
+        // (hyp_to_gds.py --update-chiplet-file) reads the GDS bbox and
+        // writes the canonical value. The _metadata block above marks the
+        // file as not-yet-canonical; chiplet-studio refuses to load it
+        // directly. See chiplet-studio/docs/coord_frame_contract.md §4.1.
         fprintf( f, "    position:\n" );
-        fprintf( f, "      x: %.6f\n", width / 2.0 );
-        fprintf( f, "      y: %.6f\n", height / 2.0 );
+        fprintf( f, "      x: 0.0\n" );
+        fprintf( f, "      y: 0.0\n" );
         fprintf( f, "      z: 0.0\n" );
 
         // I/O pads nested under the interposer (wire-bond / future flipped_bump / tsv_bump).
