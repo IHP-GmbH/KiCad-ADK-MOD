@@ -45,6 +45,7 @@
 #include <string_utils.h>
 #include <tools/board_editor_control.h>
 #include <exporters/board_exporter_base.h>
+#include <exporters/export_hyperlynx.h>
 
 
 static double iu2hyp( double iu )
@@ -709,4 +710,16 @@ int BOARD_EDITOR_CONTROL::ExportHyperlynx( const TOOL_EVENT& aEvent )
     exporter.Run();
 
     return 0;
+}
+
+
+bool ExportBoardToHyperlynxFile( BOARD* aBoard, const wxString& aOutputPath )
+{
+    if( !aBoard )
+        return false;
+
+    HYPERLYNX_EXPORTER exporter;
+    exporter.SetBoard( aBoard );
+    exporter.SetOutputFilename( wxFileName( aOutputPath ) );
+    return exporter.Run();
 }

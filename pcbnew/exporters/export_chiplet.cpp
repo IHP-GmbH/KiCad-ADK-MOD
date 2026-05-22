@@ -48,6 +48,7 @@
 #include <string_utils.h>
 #include <tools/board_editor_control.h>
 #include <exporters/board_exporter_base.h>
+#include <exporters/export_chiplet.h>
 #include <math/box2.h>
 
 // Helper to convert internal units to micrometers
@@ -448,4 +449,15 @@ int BOARD_EDITOR_CONTROL::ExportChiplet( const TOOL_EVENT& aEvent )
     exporter.Run();
 
     return 0;
+}
+
+
+bool ExportBoardToChipletFile( BOARD* aBoard, const wxString& aOutputPath )
+{
+    if( !aBoard )
+        return false;
+
+    CHIPLET_EXPORTER exporter( aBoard );
+    exporter.SetOutputFilename( wxFileName( aOutputPath ) );
+    return exporter.Run();
 }

@@ -85,6 +85,8 @@ class BASE_SET {};
 #include <exporters/gendrill_Excellon_writer.h>
 #include <exporters/gendrill_gerber_writer.h>
 #include <exporters/gerber_jobfile_writer.h>
+#include <exporters/export_chiplet.h>
+#include <exporters/export_hyperlynx.h>
 #include <pcb_io/pcb_io_mgr.h>
 #include <pcb_io/pcb_io.h>
 
@@ -130,6 +132,8 @@ HANDLE_EXCEPTIONS(PLUGIN::FootprintDelete)
 %include <exporters/gendrill_Excellon_writer.h>
 %include <exporters/gendrill_gerber_writer.h>
 %include <exporters/gerber_jobfile_writer.h>
+%include <exporters/export_chiplet.h>
+%include <exporters/export_hyperlynx.h>
 %include <gal/color4d.h>
 %include <id.h>
 
