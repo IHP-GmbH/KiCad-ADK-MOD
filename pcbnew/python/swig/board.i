@@ -46,6 +46,7 @@ HANDLE_EXCEPTIONS(BOARD::TracksInNetBetweenPoints)
 %include board_item.i
 %include board_item_container.i
 %include board_connected_item.i
+%include board_stackup.i
 %include board_design_settings.i
 %include connectivity.i
 %include pcb_item_containers.i
