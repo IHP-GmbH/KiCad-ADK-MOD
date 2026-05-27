@@ -27,7 +27,6 @@
 #include <set>
 
 #include <wx/log.h>
-#include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 
 #include <kiface_base.h>
@@ -46,7 +45,6 @@
 #include <reporter.h>
 #include <richio.h>
 #include <string_utils.h>
-#include <tools/board_editor_control.h>
 #include <exporters/board_exporter_base.h>
 #include <exporters/export_chiplet.h>
 #include <math/box2.h>
@@ -425,31 +423,6 @@ private:
 
     std::map<FOOTPRINT*, wxString> m_componentTechs;
 };
-
-
-int BOARD_EDITOR_CONTROL::ExportChiplet( const TOOL_EVENT& aEvent )
-{
-    wxString    wildcard =  wxT( "*.chiplet" );
-    BOARD*      board = m_frame->GetBoard();
-    wxFileName  fn = board->GetFileName();
-
-    fn.SetExt( wxT("chiplet") );
-
-    wxFileDialog dlg( m_frame, _( "Export Chiplet Assembly" ), fn.GetPath(), fn.GetFullName(),
-                      wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT );
-
-    if( dlg.ShowModal() != wxID_OK )
-        return 0;
-
-    fn = dlg.GetPath();
-    fn.SetExt( wxT( "chiplet" ) );
-
-    CHIPLET_EXPORTER exporter( board );
-    exporter.SetOutputFilename( fn );
-    exporter.Run();
-
-    return 0;
-}
 
 
 bool ExportBoardToChipletFile( BOARD* aBoard, const wxString& aOutputPath )

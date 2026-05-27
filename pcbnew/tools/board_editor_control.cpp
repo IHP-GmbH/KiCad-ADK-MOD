@@ -1852,8 +1852,6 @@ void BOARD_EDITOR_CONTROL::setTransitions()
     Go( &BOARD_EDITOR_CONTROL::ExportIDF,              PCB_ACTIONS::exportIDF.MakeEvent() );
     Go( &BOARD_EDITOR_CONTROL::ExportSTEP,             PCB_ACTIONS::exportSTEP.MakeEvent() );
     Go( &BOARD_EDITOR_CONTROL::ExportCmpFile,          PCB_ACTIONS::exportCmpFile.MakeEvent() );
-    Go( &BOARD_EDITOR_CONTROL::ExportHyperlynx,        PCB_ACTIONS::exportHyperlynx.MakeEvent() );
-    Go( &BOARD_EDITOR_CONTROL::ExportChiplet,          PCB_ACTIONS::exportChiplet.MakeEvent() );
 
     // Track & via size control
     Go( &BOARD_EDITOR_CONTROL::TrackWidthInc,          PCB_ACTIONS::trackWidthInc.MakeEvent() );

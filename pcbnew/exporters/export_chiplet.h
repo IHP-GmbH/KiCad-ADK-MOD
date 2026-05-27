@@ -26,12 +26,9 @@
 class BOARD;
 
 /**
- * Headless entry point to the chiplet exporter (the GUI-driven
- * counterpart lives in BOARD_EDITOR_CONTROL::ExportChiplet).
+ * Export the board assembly in .chiplet format.
  *
- * Lets Python action plugins generate a byte-identical .chiplet file
- * for use as a regression baseline when comparing against a Python
- * port of the same writer.
+ * Used by the chiplet_kicad_plugin Python action plugin via SWIG.
  *
  * @param aBoard      board to export (must be non-null)
  * @param aOutputPath full path to the output .chiplet file

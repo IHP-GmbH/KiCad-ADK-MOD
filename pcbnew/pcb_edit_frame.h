@@ -466,11 +466,6 @@ public:
                           const wxString& a3D_Subdir, double aXRef, double aYRef );
 
     /**
-     * Export the current BOARD to a Hyperlynx HYP file.
-     */
-    void OnExportHyperlynx();
-
-    /**
      * Create an IDF3 compliant BOARD (*.emn) and LIBRARY (*.emp) file.
      *
      * @param aPcb a pointer to the board to be exported to IDF.

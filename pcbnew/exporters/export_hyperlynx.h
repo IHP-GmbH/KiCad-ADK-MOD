@@ -27,12 +27,9 @@
 class BOARD;
 
 /**
- * Headless entry point to the Hyperlynx exporter (the GUI-driven
- * counterpart lives in BOARD_EDITOR_CONTROL::ExportHyperlynx).
+ * Export the board in Hyperlynx format (metric, meters).
  *
- * Lets Python action plugins generate a byte-identical .hyp file
- * for use as a regression baseline when comparing against a Python
- * port of the same writer.
+ * Used by the chiplet_kicad_plugin Python action plugin via SWIG.
  *
  * @param aBoard      board to export (must be non-null)
  * @param aOutputPath full path to the output .hyp file
