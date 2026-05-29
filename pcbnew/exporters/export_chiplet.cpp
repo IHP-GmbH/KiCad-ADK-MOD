@@ -265,7 +265,7 @@ private:
         
         wxString gdsName = fn.GetName() + ".gds";
         fprintf( f, "    layout: \"%s\"\n", (const char*) gdsName.utf8_str() );
-        fprintf( f, "    top_cell: \"TOP\"\n" ); 
+        fprintf( f, "    top_cell: \"INTERPOSER\"\n" );
         
         fprintf( f, "    dimensions:\n" );
         fprintf( f, "      width: %.6f\n", width );
