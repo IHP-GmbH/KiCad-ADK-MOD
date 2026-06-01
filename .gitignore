@@ -110,9 +110,6 @@ compile_commands.json
 /vcpkg_installed
 CMakePresets.json
 
-# Session tracking
-CHANGELOG.md
-
 # Sublime Text
 *.sublime-*
 
