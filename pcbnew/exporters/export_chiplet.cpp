@@ -119,7 +119,7 @@ private:
             }
         }
 
-        wxString interposerTechID = "interposer_tech";
+        wxString interposerTechID = "intm4tm2";
         if( !interposerLyp.IsEmpty() )
         {
             techMap[interposerTechID] = interposerLyp;
@@ -200,7 +200,7 @@ private:
         // Interposer adapter. Declares which ADK PDK adapter the assembly DRC
         // resolves. Mirrors the Python writer (chiplet_writer.py); override via
         // Board Setup > Text Variables > INTERPOSER_ADAPTER.
-        wxString interposerAdapter = "ihp_sg13g2_interposer";
+        wxString interposerAdapter = "intm4tm2";
         if( m_board->GetProject() )
         {
             const std::map<wxString, wxString>& vars = m_board->GetProject()->GetTextVars();
