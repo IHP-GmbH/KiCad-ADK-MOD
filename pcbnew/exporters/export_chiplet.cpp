@@ -197,6 +197,37 @@ private:
         fprintf( f, "  units: \"um\"\n" );
         fprintf( f, "\n" );
 
+        // Interposer adapter. Declares which ADK PDK adapter the assembly DRC
+        // resolves. Mirrors the Python writer (chiplet_writer.py); override via
+        // Board Setup > Text Variables > INTERPOSER_ADAPTER.
+        wxString interposerAdapter = "ihp_sg13g2_interposer";
+        if( m_board->GetProject() )
+        {
+            const std::map<wxString, wxString>& vars = m_board->GetProject()->GetTextVars();
+            if( vars.count( "INTERPOSER_ADAPTER" ) && !vars.at( "INTERPOSER_ADAPTER" ).IsEmpty() )
+                interposerAdapter = vars.at( "INTERPOSER_ADAPTER" );
+        }
+        fprintf( f, "interposer:\n" );
+        fprintf( f, "  adapter: \"%s\"\n", (const char*) interposerAdapter.utf8_str() );
+        fprintf( f, "\n" );
+
+        // Interconnect adapter (optional second axis). Emitted only when the
+        // INTERCONNECT_ADAPTER text variable is set, mirroring the Python writer
+        // (an unset value yields no block -> no interconnect axis).
+        wxString interconnectAdapter = "";
+        if( m_board->GetProject() )
+        {
+            const std::map<wxString, wxString>& vars = m_board->GetProject()->GetTextVars();
+            if( vars.count( "INTERCONNECT_ADAPTER" ) )
+                interconnectAdapter = vars.at( "INTERCONNECT_ADAPTER" );
+        }
+        if( !interconnectAdapter.IsEmpty() )
+        {
+            fprintf( f, "interconnect:\n" );
+            fprintf( f, "  adapter: \"%s\"\n", (const char*) interconnectAdapter.utf8_str() );
+            fprintf( f, "\n" );
+        }
+
         // Technologies Section
         fprintf( f, "technologies:\n" );
         for( auto const& [id, path] : techMap )
