@@ -171,11 +171,17 @@ SCH_EDIT_FRAME::SCH_EDIT_FRAME( KIWAY* aKiway, wxWindow* aParent ) :
     m_schematic = new SCHEMATIC( &Prj() );
     m_schematic->SetSchematicHolder( this );
 
-    // Register schematic saver for autosave history
-    Kiway().LocalHistory().RegisterSaver( m_schematic,
+    // Register schematic saver for autosave history. Key by the ADDRESS of the
+    // m_schematic member (stable for this frame's lifetime), NOT by the schematic
+    // pointer: SetSchematic() deletes and replaces m_schematic, so a pointer key
+    // would no longer match at unregister time, leaking the saver past frame
+    // destruction and leaving a lambda that dereferences a freed frame on the next
+    // autosave. The lambda reads the current m_schematic at call time.
+    Kiway().LocalHistory().RegisterSaver( &m_schematic,
         [this]( const wxString& aProjectPath, std::vector<wxString>& aFiles )
         {
-            m_schematic->SaveToHistory( aProjectPath, aFiles );
+            if( m_schematic )
+                m_schematic->SaveToHistory( aProjectPath, aFiles );
         } );
 
     CreateDefaultScreens();
@@ -569,6 +575,12 @@ void SCH_EDIT_FRAME::OnCrossProbeFlashTimer( wxTimerEvent& aEvent )
 
 SCH_EDIT_FRAME::~SCH_EDIT_FRAME()
 {
+    // Remove the schematic autosave-history saver before the schematic is deleted
+    // below, so a later autosave cannot invoke a lambda capturing this freed frame.
+    // Keyed by &m_schematic (the member address), matching the registration, so it
+    // unregisters reliably even after SetSchematic() has swapped the schematic pointer.
+    Kiway().LocalHistory().UnregisterSaver( &m_schematic );
+
     m_hierarchy->Unbind( wxEVT_SIZE, &SCH_EDIT_FRAME::OnResizeHierarchyNavigator, this );
 
     // Ensure m_canvasType is up to date, to save it in config

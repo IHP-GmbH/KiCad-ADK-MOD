@@ -193,8 +193,13 @@ EDA_BASE_FRAME::EDA_BASE_FRAME( wxWindow* aParent, FRAME_T aFrameType, const wxS
     commonInit( aFrameType );
 
     // Register project file saver. Ensures project file participates in
-    // autosave history commits without affecting dirty state.
-    Kiway().LocalHistory().RegisterSaver( &Prj(),
+    // autosave history commits without affecting dirty state. Keyed by the
+    // frame (this), not &Prj(): the project pointer is shared by every frame of
+    // a project, so a shared key would let one frame's destruction (or a
+    // dedup-skipped registration) leave a saver capturing another frame's
+    // `this`. Keying by `this` lets the destructor remove exactly this frame's
+    // saver, so a closed frame is never invoked by a later autosave.
+    Kiway().LocalHistory().RegisterSaver( this,
         [this]( const wxString& aProjectPath, std::vector<wxString>& aFiles )
         {
             Prj().SaveToHistory( aProjectPath, aFiles );
@@ -295,6 +300,13 @@ void EDA_BASE_FRAME::windowClosing( wxCloseEvent& event )
 
 EDA_BASE_FRAME::~EDA_BASE_FRAME()
 {
+    // Remove this frame's autosave-history saver (registered keyed by `this`)
+    // before destruction, so a later autosave can never invoke a lambda that
+    // captures this freed frame. Without this, closing a frame and then letting
+    // the autosave timer fire dereferences a dangling `this` (use-after-free,
+    // crashes in KIWAY_HOLDER::Prj()).
+    Kiway().LocalHistory().UnregisterSaver( this );
+
     Disconnect( ID_AUTO_SAVE_TIMER, wxEVT_TIMER,
                 wxTimerEventHandler( EDA_BASE_FRAME::onAutoSaveTimer ) );
     Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( EDA_BASE_FRAME::windowClosing ) );

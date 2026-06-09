@@ -687,6 +687,12 @@ PCB_EDIT_FRAME::~PCB_EDIT_FRAME()
 {
     ScriptingOnDestructPcbEditFrame( this );
 
+    // Remove the board autosave-history saver so a later autosave cannot invoke a
+    // lambda capturing this freed frame. Keyed by &m_pcb (the member address),
+    // matching the registration, so it unregisters reliably even after SetBoard()
+    // has swapped the board pointer.
+    Kiway().LocalHistory().UnregisterSaver( &m_pcb );
+
     if( ADVANCED_CFG::GetCfg().m_ShowEventCounters )
     {
         // Stop the timer during destruction early to avoid potential event race conditions (that
@@ -2956,12 +2962,17 @@ void PCB_EDIT_FRAME::ProjectChanged()
     // Register autosave history saver for the board.
     // Saver exports the in-memory BOARD into the history mirror preserving the original
     // relative path and file name (reparented under .history) without touching dirty flags.
+    // Key by the ADDRESS of the m_pcb member (stable for this frame's lifetime), NOT by the
+    // board pointer: SetBoard() deletes and replaces m_pcb, so a pointer key would no longer
+    // match at unregister time, leaking the saver past frame destruction. The lambda reads
+    // the current board at call time.
     if( GetBoard() )
     {
-        Kiway().LocalHistory().RegisterSaver( GetBoard(),
+        Kiway().LocalHistory().RegisterSaver( &m_pcb,
             [this]( const wxString& aProjectPath, std::vector<wxString>& aFiles )
             {
-                GetBoard()->SaveToHistory( aProjectPath, aFiles );
+                if( m_pcb )
+                    m_pcb->SaveToHistory( aProjectPath, aFiles );
             } );
     }
 }
