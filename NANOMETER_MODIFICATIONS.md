@@ -1,6 +1,6 @@
 # Technical Documentation: Nanometer & Micrometer Support
 
-This document details the technical modifications applied to the KiCad codebase to support sub-micron features (down to 10nm), native Micrometer (µm) units in the UI, and high-precision export.
+This document records the ADK-specific modifications applied on top of upstream KiCad to support sub-micron features (down to 10nm), native Micrometer (µm) units in the UI, high-precision export, and an AppImage build. It is the only ADK-authored doc in this fork; treat it as the change log versus upstream.
 
 ## 1. Internal Geometry Limits (10nm Support)
 
@@ -9,18 +9,18 @@ This document details the technical modifications applied to the KiCad codebase 
 ### Modified Files:
 *   **`pcbnew/pcb_track.h`**
     *   **Symbol:** `GEOMETRY_MIN_SIZE`
-    *   **Change:** Value changed from default (typically 0.01mm) to `0.00001 * pcbIUScale.IU_PER_MM` (10nm).
+    *   **Change:** `#define GEOMETRY_MIN_SIZE (int) ( 0.00001 * pcbIUScale.IU_PER_MM )` (10nm).
     *   **Implication:** Allows the router and DRC to accept track widths and via diameters down to 10nm.
 
 *   **`include/board_design_settings.h`**
     *   **Symbols:** `MINIMUM_ERROR_SIZE_MM`, `MINIMUM_LINE_WIDTH_MM`
-    *   **Change:** Defaults set to `0.00001`.
+    *   **Change:** Both defaults set to `0.00001`.
     *   **Implication:** Board setup constraints now allow entering values as small as 10nm without validation errors.
 
 *   **`pcbnew/dialogs/dialog_track_via_size.cpp`**
-    *   **Function:** `TransferDataFromWindow` (Validation logic)
-    *   **Change:** Lowered `minSize` validation clamp to `0.00001 * pcbIUScale.IU_PER_MM`.
-    *   **Implication:** The "Track & Via Properties" dialog accepts small values.
+    *   **Symbol:** file-scope `const int minSize` used in the `DIALOG_TRACK_VIA_SIZE` constructor.
+    *   **Change:** `const int minSize = (int) ( 0.00001 * pcbIUScale.IU_PER_MM );`. The value is passed into the member-init list for `m_trackWidth`, `m_viaDiameter`, and `m_viaDrill`, which clamp their inputs to that minimum. `TransferDataFromWindow` itself only runs `ValidateViaParameters` and stores values; it does not reference `minSize`.
+    *   **Implication:** The "Track & Via Properties" dialog accepts values down to 10nm.
 
 ## 2. User Interface: Micrometer Units (µm)
 
@@ -28,15 +28,16 @@ This document details the technical modifications applied to the KiCad codebase 
 
 ### Modified Files:
 *   **`common/eda_units.cpp`**
-    *   **Function:** `EDA_UNIT_UTILS::UI::StringFromValue`
-    *   **Change:** Increased display precision for `EDA_UNITS::UM`. Format string changed to `%.4f` (4 decimal places).
-    *   **Implication:** 1nm is displayed as `0.0010 µm` instead of `0.0 µm` or `0 µm`.
+    *   **Function:** `EDA_UNIT_UTILS::UI::MessageTextFromValue`
+    *   **Change:** The readability path now formats `EDA_UNITS::UM` with `%.4f` (long form) and `%.0f` (short form): `case EDA_UNITS::UM: format = short_form ? wxT( "%.0f" ) : wxT( "%.4f" );`.
+    *   **Implication:** 1nm is displayed as `0.0010 µm` instead of `0.0 µm`.
+    *   **Note:** The full-precision path `EDA_UNIT_UTILS::UI::StringFromValue` does not have a dedicated UM case; UM falls into `default: format = wxT( "%.10f" )`, so edit fields retain full nanometer precision.
 
 *   **`common/tool/actions.cpp`, `include/tool/actions.h`**
-    *   **Change:** Added `micrometersUnits` action definition.
+    *   **Change:** Added the `micrometersUnits` action: `ACTIONS::micrometersUnits` is named `common.Control.micrometerUnits`, friendly name "Micrometers", `Parameter(EDA_UNITS::UM)`. Declared in `include/tool/actions.h`. The Go binding is wired in `common/tool/common_tools.cpp` (`SwitchUnits`).
 
-*   **Toolbars (`pcbnew/toolbars_pcb_editor.cpp`, etc.)**
-    *   **Change:** Added the µm button to the left toolbar alongside mm, inch, and mils.
+*   **`pcbnew/toolbars_pcb_editor.cpp`**
+    *   **Change:** Added the µm button to the left toolbar via `.AddAction( ACTIONS::micrometersUnits )`, alongside mm, inch, and mils.
 
 ## 3. Grid System
 
@@ -45,46 +46,42 @@ This document details the technical modifications applied to the KiCad codebase 
 ### Modified Files:
 *   **`common/settings/app_settings.cpp`**
     *   **Function:** `APP_SETTINGS_BASE::DefaultGridSizeList`
-    *   **Change:** Added the following presets to the "else" block (used by Pcbnew):
+    *   **Change:** Added five fine presets to the "else" block (used by Pcbnew):
         *   `0.005 mm` (5 µm)
-        *   `0.0025 mm` (2.5 µm)
         *   `0.001 mm` (1 µm)
         *   `0.0001 mm` (100 nm)
         *   `0.00001 mm` (10 nm)
         *   `0.000001 mm` (1 nm)
-    *   **Implication:** These options appear in the grid dropdown menu. Note: KiCad internal units are integers (1 nm resolution), so 1nm is the hard floor for grid snapping.
+    *   **Implication:** These options appear in the grid dropdown menu. Note: KiCad internal units are integers (1nm resolution), so 1nm is the hard floor for grid snapping.
 
 ## 4. Export Formats: Hyperlynx
 
-**Objective:** Ensure export files retain nanometer precision. Standard Imperial/English exports lost precision due to floating point conversion factors (0.0254).
+**Objective:** Ensure export files retain nanometer precision. The legacy Imperial/English export lost precision due to the floating-point conversion factor (0.0254).
 
 ### Modified Files:
 *   **`pcbnew/exporters/export_hyperlynx.cpp`**
     *   **Function:** `HYPERLYNX_EXPORTER::generateHeaders`
         *   **Change:** Header changed from `{UNITS=ENGLISH LENGTH}` to `{UNITS=METRIC LENGTH}`.
-    *   **Function:** `iu2hyp` (Static helper)
-        *   **Change:** Logic changed from:
-            `return iu / 1e9 / 0.0254;` (Imperial)
-            to:
-            `return iu / ( PCB_IU_PER_MM * 1000.0 );` (Metric/Meters)
-    *   **Implication:** 
-        *   Exported files now use **Meters** as the base unit.
-        *   Example: A 200µm trace appears as `W=0.0002000000`.
-        *   Precision loss from Inch conversion is eliminated.
+    *   **Function:** `iu2hyp` (static helper)
+        *   **Change:** Logic changed from the historical Imperial form `return iu / 1e9 / 0.0254;` to `return iu / ( PCB_IU_PER_MM * 1000.0 );` (export in meters).
+    *   **Implication:**
+        *   Exported files now use **meters** as the base unit.
+        *   Example: a 200µm trace appears as `W=0.0002000000`.
+        *   Precision loss from inch conversion is eliminated.
 
 ## 5. Rendering Fixes for Nanometer Scale (2025-11-27)
 
 **Objective:** Fix visual artifacts where vias and tracks appeared with disproportionately large white borders/shadows at nanometer scales.
 
-**Problem:** When working at nanometer scales (e.g., 10nm vias), some visual features—specifically the Locked Item Shadow and Hole Wall Painting—were using default millimeter-based sizes. For example, a standard shadow based on Silk Screen width (~0.15mm) would be 15,000 times larger than a 10nm via, appearing as a giant white halo.
+**Problem:** When working at nanometer scales (e.g. 10nm vias), some visual features (specifically the Locked Item Shadow and Hole Wall Painting) were using default millimeter-based sizes. For example, a shadow based on Silk Screen width (~0.15mm) would be 15,000 times larger than a 10nm via, appearing as a giant white halo. The locked-shadow default is `m_lockedShadowMargin = bds.GetLineThickness( F_SilkS ) * 4`.
 
 ### Modified Files:
 *   **`pcbnew/pcb_painter.cpp`**
     *   **Function:** `PCB_PAINTER::draw( const PCB_VIA* aVia, int aLayer )`
-        *   **Change (LAYER_LOCKED_ITEM_SHADOW):** Shadow width is now clamped to `via_width / 4` if `m_lockedShadowMargin` exceeds the via width.
-        *   **Change (LAYER_VIA_HOLEWALLS):** Hole wall painting thickness is clamped to `drill_size / 4` if it exceeds the drill size.
+        *   **Change (LAYER_LOCKED_ITEM_SHADOW):** Shadow width is clamped to `aVia->GetWidth( currentLayer ) / 4` when it exceeds the via width.
+        *   **Change (LAYER_VIA_HOLEWALLS):** Hole wall thickness is clamped to `getViaDrillSize( aVia ) / 4.0` when it exceeds that maximum.
     *   **Function:** `PCB_PAINTER::draw( const PCB_TRACK* aTrack, int aLayer )`
-        *   **Change (LAYER_LOCKED_ITEM_SHADOW):** Shadow width is clamped to track width if `m_lockedShadowMargin` exceeds it.
+        *   **Change (LAYER_LOCKED_ITEM_SHADOW):** Shadow width is clamped to the track width when it exceeds it.
     *   **Implication:** Visual artifacts are eliminated for nanometer-scale designs while maintaining normal appearance at standard PCB scales.
 
 ---
@@ -94,15 +91,15 @@ This document details the technical modifications applied to the KiCad codebase 
 **Objective:** Create a portable, standalone executable that runs on the host machine without root privileges or Docker GUI issues.
 
 ### Build System Changes:
-*   **`Dockerfile`:** 
-    *   Updated base image to `ubuntu:24.04`.
+*   **`Dockerfile`:**
+    *   Base image set to `ubuntu:24.04`.
     *   Added dependencies for AppImage creation: `wget`, `file`, `appstream`, `desktop-file-utils`, `patchelf`.
 *   **`common/paths.cpp`:**
-    *   **Change:** Modified `GetStockDataPath` to check for the `APPDIR` environment variable.
+    *   **Change:** `GetStockDataPath` checks for the `APPDIR` environment variable (`wxGetEnv( wxT( "APPDIR" ), &appDir )`).
     *   **Reason:** Enables the AppImage to find its own resources (icons, shared files) relative to itself, rather than looking in system paths (`/usr/share`).
 *   **`create_appimage.sh`:**
-    *   Custom script created to bundle the compiled binaries, libraries, and resources into an AppImage using `linuxdeploy`.
-    *   Manually copies `images.tar.gz` to ensure icons are present.
+    *   Custom script that bundles the compiled binaries, libraries, and resources into an AppImage using `linuxdeploy` (with the GTK plugin).
+    *   Copies `resources/images.tar.gz` into the AppDir so icons are present.
     *   Sets `LD_LIBRARY_PATH` so the bundle finds its own internal libraries (`libkicommon`, etc.).
 
 ### Usage:
@@ -117,17 +114,22 @@ This document details the technical modifications applied to the KiCad codebase 
 ### Modified Files:
 *   **`pcbnew/exporters/export_hyperlynx.cpp`**
     *   **Function:** `HYPERLYNX_EXPORTER::writeDevices`
-    *   **Change:** Added logic to check each footprint for a custom field named `GDS_FILE`.
+    *   **Change:** Added logic to read a custom footprint field named `GDS_FILE` and emit it on the device line when non-empty.
     *   **Logic:**
         ```cpp
         PCB_FIELD* gdsField = footprint->GetField( wxT( "GDS_FILE" ) );
-        if( gdsField && !gdsField->GetText().IsEmpty() ) {
-            // Append GDS_FILE="path" to the device line
+        if( gdsField )
+        {
+            wxString gdsPath = gdsField->GetText();
+            if( !gdsPath.IsEmpty() )
+            {
+                // emit ... GDS_FILE="<gdsPath>" on the device line
+            }
         }
         ```
     *   **Implication:**
-        *   If a user adds a field `GDS_FILE` = `/path/to/cell.gds` to a footprint, the exported `.hyp` file will contain:
-            `(? REF="U1" L="Top" GDS_FILE="/path/to/cell.gds")`
+        *   If a user adds a field `GDS_FILE` = `/path/to/cell.gds` to a footprint, the device line in the exported `.hyp` file carries the path, e.g.:
+            `(? REF="U1" L="Top" X=... Y=... R=... GDS_FILE="/path/to/cell.gds")`
         *   This enables integration with tools that map PCB components to GDS cells.
 
 ## 8. HyperLynx Export: Explicit Via Layer Stacks (2025-12-04)
@@ -137,7 +139,7 @@ This document details the technical modifications applied to the KiCad codebase 
 ### Modified Files:
 *   **`pcbnew/exporters/export_hyperlynx.cpp`**
     *   **Function:** `HYPERLYNX_EXPORTER::writeSinglePadStack`
-    *   **Change:** Removed the `if( outLayers == layerMask )` optimization block that collapsed full-stack vias into `MDEF`.
+    *   **Change:** Removed the `if( outLayers == layerMask )` optimization branch that collapsed full-stack vias into `MDEF`; the function now always lists explicit layers (per-layer loop). The inline comment notes this helps downstream tools map to specific PDK layers.
     *   **Implication:** All vias now export as an explicit list of layers, e.g.:
         ```
         {PADSTACK=14, 0.000003000
@@ -147,35 +149,38 @@ This document details the technical modifications applied to the KiCad codebase 
         }
         ```
 
+## 9. Chiplet Assembly Export (2025-11-28)
 
-## 8. Chiplet Assembly Export (2025-11-28)
-
-**Objective:** Export the board placement and routing data in a `.chiplet` YAML format suitable for 3D assembly tools, linking KiCad footprints to GDSII files and Technology definitions.
+**Objective:** Export the board placement data in a `.chiplet` YAML format suitable for 3D assembly tools, linking KiCad footprints to GDSII files and technology (`.lyp`) definitions.
 
 ### Modified Files:
-*   **`pcbnew/exporters/export_chiplet.cpp`** (New File)
-    *   **Class:** `CHIPLET_EXPORTER`
-    *   **Function:** `Run()`
-    *   **Logic:**
-        1.  Reads project variable `INTERPOSER_LYP` to define the interposer technology.
-        2.  Iterates over footprints to find `LYP_FILE` and `GDS_FILE` fields.
-        3.  Calculates component dimensions (`width`, `height`) using the Footprint Courtyard (preferred) or Bounding Box.
-        4.  Transforms coordinates from KiCad Global (Y-down) to Interposer-Relative Cartesian (Y-up).
-            *   Interposer Origin (0,0) is set to the bottom-left of the board bounding box.
-            *   `x_out = x_kicad - interposer_x_min`
-            *   `y_out = interposer_y_max - y_kicad`
-        5.  Generates a YAML file conforming to the `CHIPLET_FORMAT_SPEC.md` with values in micrometers.
+*   **`pcbnew/exporters/export_chiplet.cpp`** (New file)
+    *   **Class:** `CHIPLET_EXPORTER : public BOARD_EXPORTER_BASE`
+    *   **Entry point:** `Run()` only opens the output file (`LOCALE_IO` for C-locale floats) and delegates to `WriteYAML( f )` inside a try/catch. All export logic lives in `WriteYAML`:
+        1.  Reads `INTERPOSER_LYP` (from board properties, falling back to project text variables) to define the interposer technology. Optional `INTERPOSER_ADAPTER` and `INTERCONNECT_ADAPTER` text variables select the ADK PDK adapters.
+        2.  Iterates over footprints, segregating I/O pads (footprints carrying an `IO_CLASS` field) from chiplet dies, and reads each die's `GDS_FILE` and `LYP_FILE` fields.
+        3.  Computes component dimensions (`width`, `height`) from the footprint courtyard (`F_CrtYd` / `B_CrtYd`) when present, falling back to the footprint bounding box. Conversion to micrometers uses the static `iu2um` helper.
+        4.  Transforms coordinates from KiCad global (Y-down) to Cartesian (Y-up), relative to the board `Edge.Cuts` bounding box:
+            *   `int interposer_x_min = boardBBox.GetX();`
+            *   `int interposer_y_max = boardBBox.GetBottom();`
+            *   `x_out = iu2um( pos.x - interposer_x_min )`
+            *   `y_out = iu2um( interposer_y_max - pos.y )`
+        5.  Emits YAML with `assembly.units: "um"`. The file is written in the intermediate `pcb-bbox-corner` frame: it carries a `_metadata` block with `frame: pcb-bbox-corner` and `finalize_required: true`. The canonical `.chiplet` frame is GDS-bbox-corner; the downstream finalizer (`hyp_to_gds.py --update-chiplet-file`) converts to the canonical frame and strips the `_metadata` block. Readers MUST refuse files with `finalize_required: true`.
 
-*   **`pcbnew/menubar_pcb_editor.cpp`**
-    *   Added "Chiplet..." to the Export submenu.
+*   **`pcbnew/exporters/export_chiplet.h`**
+    *   Declares the SWIG-callable headless entry point `bool ExportBoardToChipletFile( BOARD* aBoard, const wxString& aOutputPath );` (defined at the end of `export_chiplet.cpp`).
 
-*   **`pcbnew/tools/pcb_actions.cpp`** & **`pcb_actions.h`**
-    *   Defined `exportChiplet` action.
+### Invocation (refactored: plugin-driven, not a menu action)
 
-*   **`pcbnew/tools/board_editor_control.cpp`**
-    *   Added `ExportChiplet` handler.
+The legacy C++ pcbnew menu actions ("File > Export > Chiplet..." and "File > Export > Hyperlynx...") were removed from this fork. There is no `exportChiplet` action, no `ExportChiplet` handler, and no Export-submenu entry in `pcbnew/menubar_pcb_editor.cpp`, `pcbnew/tools/pcb_actions.{cpp,h}`, or `pcbnew/tools/board_editor_control.cpp`.
+
+Export is now driven by the **Chiplets KiCad plugin** (Tools > External Plugins > Chiplet Export). The underlying C++ exporters remain as SWIG-callable headless functions that the plugin (or any Python script) invokes:
+*   `ExportBoardToChipletFile( BOARD*, const wxString& )` in `export_chiplet.cpp` / `export_chiplet.h`.
+*   `ExportBoardToHyperlynxFile( BOARD*, const wxString& )` in `export_hyperlynx.cpp` / `export_hyperlynx.h`.
+
+Both headers are exposed to Python via `pcbnew/python/swig/pcbnew.i` (`#include` and `%include` of `exporters/export_chiplet.h` and `exporters/export_hyperlynx.h`).
 
 ### Usage:
-1.  **Setup:** Define `INTERPOSER_LYP` in **Board Setup > Text Variables** with the path to the interposer's `.lyp` file.
-2.  **Components:** Ensure footprints have `GDS_FILE` and optional `LYP_FILE` fields.
-3.  **Export:** **File > Export > Chiplet...**
+1.  **Setup:** Define `INTERPOSER_LYP` in **Board Setup > Text Variables** with the path to the interposer's `.lyp` file. Optionally set `INTERPOSER_ADAPTER` / `INTERCONNECT_ADAPTER`.
+2.  **Components:** Ensure footprints have `GDS_FILE` and optional `LYP_FILE` fields. Footprints with an `IO_CLASS` field are treated as interposer I/O pads.
+3.  **Export:** Run the Chiplets plugin from **Tools > External Plugins > Chiplet Export**, which calls `ExportBoardToChipletFile`. Run the downstream finalizer `hyp_to_gds.py --update-chiplet-file` to convert the intermediate `pcb-bbox-corner` frame to the canonical GDS-bbox-corner frame.
