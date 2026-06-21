@@ -23,6 +23,7 @@
  */
 
 #include <cstdio>
+#include <string>
 #include <vector>
 
 #include <wx/log.h>
@@ -50,6 +51,33 @@ static double iu2hyp( double iu )
 {
     // Export in meters
     return iu / ( PCB_IU_PER_MM * 1000.0 );
+}
+
+
+// Neutralize characters that would break a single-line, double-quote-delimited
+// HyperLynx token built from third-party data (a footprint reference, a
+// renamed layer name, or the user-supplied GDS_FILE field). An embedded
+// double-quote terminates the field early -- the consumer regex
+// GDS_FILE="([^"]+)" would then silently drop the whole device -- and a
+// newline splits the record. Mirrors _sanitize_hyp_token() in the Python
+// writer (writers/hyperlynx_writer.py); keep both in sync.
+static std::string sanitizeHypToken( const wxString& aValue )
+{
+    const wxScopedCharBuffer utf8 = aValue.utf8_str();
+    std::string out;
+    out.reserve( utf8.length() );
+
+    for( size_t i = 0; i < utf8.length(); ++i )
+    {
+        switch( const char c = utf8.data()[i] )
+        {
+        case '"':                        out += '\''; break; // would close the token
+        case '\n': case '\r': case '\t': out += ' ';  break; // would split the record
+        default:                         out += c;    break;
+        }
+    }
+
+    return out;
 }
 
 
@@ -398,16 +426,16 @@ bool HYPERLYNX_EXPORTER::writeDevices()
         if( !gdsPath.IsEmpty() )
         {
             m_out->Print( 1, "(? REF=\"%s\" L=\"%s\" X=%.9f Y=%.9f R=%.2f GDS_FILE=\"%s\")\n",
-                          (const char*) ref.c_str(),
-                          (const char*) layerName.c_str(),
+                          sanitizeHypToken( ref ).c_str(),
+                          sanitizeHypToken( layerName ).c_str(),
                           x, y, rot,
-                          (const char*) gdsPath.c_str() );
+                          sanitizeHypToken( gdsPath ).c_str() );
         }
         else
         {
             m_out->Print( 1, "(? REF=\"%s\" L=\"%s\" X=%.9f Y=%.9f R=%.2f)\n",
-                          (const char*) ref.c_str(),
-                          (const char*) layerName.c_str(),
+                          sanitizeHypToken( ref ).c_str(),
+                          sanitizeHypToken( layerName ).c_str(),
                           x, y, rot );
         }
     }
