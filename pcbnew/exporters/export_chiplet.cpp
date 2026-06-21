@@ -22,6 +22,8 @@
  */
 
 #include <cstdio>
+#include <cctype>
+#include <string>
 #include <vector>
 #include <map>
 #include <set>
@@ -55,6 +57,87 @@ static double iu2um( double iu )
     // PCB_IU_PER_MM is usually 10000 or 1000000 depending on config.
     // We want micrometers.
     return iu / ( PCB_IU_PER_MM / 1000.0 );
+}
+
+// --- YAML scalar escaping ---------------------------------------------------
+// KiCad-derived strings (footprint references, net names, field text, file
+// paths) are third-party data and can contain YAML metacharacters. They are
+// interpolated into the .chiplet output, so they must be escaped or the file
+// becomes malformed/injectable. The two helpers below MIRROR yaml_scalar() /
+// _escape_yaml_dq() in the Python writer (chiplet_kicad_plugin/writers/
+// chiplet_writer.py); the two producers must stay byte-identical
+// (tests/test_byte_exact_writers.py), so keep both ends in sync.
+
+// Escape a value for use INSIDE an already double-quoted YAML scalar.
+static std::string escapeYamlDq( const wxString& aValue )
+{
+    const wxScopedCharBuffer utf8 = aValue.utf8_str();
+    std::string out;
+    out.reserve( utf8.length() );
+
+    for( size_t i = 0; i < utf8.length(); ++i )
+    {
+        switch( const char c = utf8.data()[i] )
+        {
+        case '\\': out += "\\\\"; break;
+        case '"':  out += "\\\""; break;
+        case '\n': out += "\\n";  break;
+        case '\r': out += "\\r";  break;
+        case '\t': out += "\\t";  break;
+        default:   out += c;      break;
+        }
+    }
+
+    return out;
+}
+
+// True when a value can be emitted as a bare (unquoted) YAML scalar without
+// changing how a parser reads it: a plain token that is not a reserved word.
+static bool isSafeBareScalar( const std::string& s )
+{
+    if( s.empty() )
+        return false;
+
+    auto isFirst = []( unsigned char c )
+    {
+        return std::isalnum( c ) || c == '_';
+    };
+    auto isRest = []( unsigned char c )
+    {
+        return std::isalnum( c ) || c == '_' || c == '.' || c == '/' || c == '+' || c == '-';
+    };
+
+    if( !isFirst( (unsigned char) s[0] ) )
+        return false;
+
+    for( size_t i = 1; i < s.size(); ++i )
+    {
+        if( !isRest( (unsigned char) s[i] ) )
+            return false;
+    }
+
+    static const std::set<std::string> reserved = {
+        "true", "false", "yes", "no", "on", "off", "null", "none", "y", "n", "~" };
+
+    std::string lower = s;
+
+    for( char& c : lower )
+        c = (char) std::tolower( (unsigned char) c );
+
+    return reserved.find( lower ) == reserved.end();
+}
+
+// Render a value as a YAML scalar: bare when it is an unambiguous plain token,
+// otherwise double-quoted and escaped. Used for fields emitted without quotes
+// in the template (ids, technology ids/keys, io_class).
+static std::string yamlScalar( const wxString& aValue )
+{
+    const std::string s( aValue.utf8_str() );
+
+    if( isSafeBareScalar( s ) )
+        return s;
+
+    return "\"" + escapeYamlDq( aValue ) + "\"";
 }
 
 class CHIPLET_EXPORTER : public BOARD_EXPORTER_BASE
@@ -202,6 +285,19 @@ private:
             wxString ioClass = footprint->GetField( wxT( "IO_CLASS" ) ) ? footprint->GetField( wxT( "IO_CLASS" ) )->GetText() : wxString("");
             if( !ioClass.IsEmpty() )
             {
+                // The reader only accepts these classes (IOPad.cpp
+                // string_to_io_class throws otherwise), and the finalizer does
+                // not normalize them on the no-sidecar path, so a typo would
+                // ship a .chiplet that fails at load. Fail loudly at export.
+                if( ioClass != wxT( "wire_bond" ) && ioClass != wxT( "flipped_bump" )
+                        && ioClass != wxT( "tsv_bump" ) )
+                {
+                    THROW_IO_ERROR( wxString::Format(
+                            _( "Footprint %s has an unrecognized IO_CLASS '%s'; expected "
+                               "wire_bond, flipped_bump, or tsv_bump." ),
+                            footprint->GetReference(), ioClass ) );
+                }
+
                 ioPadComponents.push_back( footprint );
                 continue;
             }
@@ -255,7 +351,7 @@ private:
         fprintf( f, "assembly:\n" );
         wxString assemblyName = m_board->GetFileName();
         wxFileName fn( assemblyName );
-        fprintf( f, "  name: \"%s\"\n", (const char*) fn.GetName().utf8_str() );
+        fprintf( f, "  name: \"%s\"\n", escapeYamlDq( fn.GetName() ).c_str() );
         fprintf( f, "  units: \"um\"\n" );
         fprintf( f, "\n" );
 
@@ -270,7 +366,7 @@ private:
                 interposerAdapter = vars.at( "INTERPOSER_ADAPTER" );
         }
         fprintf( f, "interposer:\n" );
-        fprintf( f, "  adapter: \"%s\"\n", (const char*) interposerAdapter.utf8_str() );
+        fprintf( f, "  adapter: \"%s\"\n", escapeYamlDq( interposerAdapter ).c_str() );
         fprintf( f, "\n" );
 
         // Interconnect adapter (optional second axis). Emitted only when the
@@ -286,7 +382,7 @@ private:
         if( !interconnectAdapter.IsEmpty() )
         {
             fprintf( f, "interconnect:\n" );
-            fprintf( f, "  adapter: \"%s\"\n", (const char*) interconnectAdapter.utf8_str() );
+            fprintf( f, "  adapter: \"%s\"\n", escapeYamlDq( interconnectAdapter ).c_str() );
             fprintf( f, "\n" );
         }
 
@@ -294,9 +390,9 @@ private:
         fprintf( f, "technologies:\n" );
         for( auto const& [id, path] : techMap )
         {
-            fprintf( f, "  %s:\n", (const char*) id.utf8_str() );
+            fprintf( f, "  %s:\n", yamlScalar( id ).c_str() );
             fprintf( f, "    description: \"Imported from KiCad\"\n" );
-            fprintf( f, "    layer_properties: \"%s\"\n", (const char*) path.utf8_str() );
+            fprintf( f, "    layer_properties: \"%s\"\n", escapeYamlDq( path ).c_str() );
             fprintf( f, "    dbu: 0.001\n" ); // Defaulting to 1nm
             fprintf( f, "\n" );
         }
@@ -354,10 +450,10 @@ private:
         // places that bbox center in the canonical frame.
         fprintf( f, "    anchor: bbox_center\n" );
         if( techMap.count( interposerTechID ) )
-            fprintf( f, "    technology: %s\n", (const char*) interposerTechID.utf8_str() );
+            fprintf( f, "    technology: %s\n", yamlScalar( interposerTechID ).c_str() );
         
         wxString gdsName = fn.GetName() + ".gds";
-        fprintf( f, "    layout: \"%s\"\n", (const char*) gdsName.utf8_str() );
+        fprintf( f, "    layout: \"%s\"\n", escapeYamlDq( gdsName ).c_str() );
         fprintf( f, "    top_cell: \"INTERPOSER\"\n" );
         
         fprintf( f, "    dimensions:\n" );
@@ -421,9 +517,9 @@ private:
                 double x_um = iu2um( pos.x - interposer_x_min );
                 double y_um = iu2um( interposer_y_max - pos.y );
 
-                fprintf( f, "      - id: %s\n", (const char*) ref.utf8_str() );
-                fprintf( f, "        io_class: %s\n", (const char*) ioClass.utf8_str() );
-                fprintf( f, "        net: \"%s\"\n", (const char*) netName.utf8_str() );
+                fprintf( f, "      - id: %s\n", yamlScalar( ref ).c_str() );
+                fprintf( f, "        io_class: %s\n", yamlScalar( ioClass ).c_str() );
+                fprintf( f, "        net: \"%s\"\n", escapeYamlDq( netName ).c_str() );
                 fprintf( f, "        position: { x: %.6f, y: %.6f }\n", x_um, y_um );
                 fprintf( f, "        size: { x: %.3f, y: %.3f }\n", size_x_um, size_y_um );
                 fprintf( f, "        layer: TopMetal2\n" );
@@ -439,7 +535,7 @@ private:
             wxString orient = footprint->GetField( wxT( "ORIENTATION" ) ) ? footprint->GetField( wxT( "ORIENTATION" ) )->GetText() : wxString("");
             bool isFlipChip = ( orient == wxT( "flip_chip" ) );
 
-            fprintf( f, "  - id: %s\n", (const char*) ref.utf8_str() );
+            fprintf( f, "  - id: %s\n", yamlScalar( ref ).c_str() );
             fprintf( f, "    type: die\n" );
             // Per chiplet-studio/docs/coord_frame_contract.md sections 2
             // and 4.4: dies produced by gds_to_kicad have GDS (0,0) as
@@ -448,7 +544,7 @@ private:
             fprintf( f, "    anchor: gds_origin\n" );
 
             if( m_componentTechs.count( footprint ) )
-                fprintf( f, "    technology: %s\n", (const char*) m_componentTechs[footprint].utf8_str() );
+                fprintf( f, "    technology: %s\n", yamlScalar( m_componentTechs[footprint] ).c_str() );
 
             if( isFlipChip )
             {
@@ -456,7 +552,7 @@ private:
             }
 
             if( !gds.IsEmpty() )
-                fprintf( f, "    layout: \"%s\"\n", (const char*) gds.utf8_str() );
+                fprintf( f, "    layout: \"%s\"\n", escapeYamlDq( gds ).c_str() );
 
             if( isFlipChip )
             {
