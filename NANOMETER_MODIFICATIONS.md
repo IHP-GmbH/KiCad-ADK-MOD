@@ -1,6 +1,6 @@
 # Technical Documentation: Nanometer & Micrometer Support
 
-This document records the ADK-specific modifications applied on top of upstream KiCad to support sub-micron features (down to 10nm), native Micrometer (µm) units in the UI, high-precision export, and an AppImage build. It is the only ADK-authored doc in this fork; treat it as the change log versus upstream.
+This document records the ADK-specific modifications applied on top of upstream KiCad to support sub-micron features (down to 10nm), native Micrometer (µm) units in the UI, high-precision export, and an AppImage build. It is the only ADK-authored doc in this fork and is the primary change log versus upstream.
 
 ## 1. Internal Geometry Limits (10nm Support)
 
@@ -38,6 +38,12 @@ This document records the ADK-specific modifications applied on top of upstream 
 
 *   **`pcbnew/toolbars_pcb_editor.cpp`**
     *   **Change:** Added the µm button to the left toolbar via `.AddAction( ACTIONS::micrometersUnits )`, alongside mm, inch, and mils.
+
+*   **`pcbnew/toolbars_footprint_editor.cpp`, `pcbnew/toolbars_footprint_viewer.cpp`**
+    *   **Change:** The same `.AddAction( ACTIONS::micrometersUnits )` button is added to the footprint editor and footprint viewer left toolbars, so um is selectable there too.
+
+*   **`common/eda_draw_frame.cpp`**
+    *   **Change:** Added the `case EDA_UNITS::UM: m_toolManager->RunAction( ACTIONS::micrometersUnits ); break;` arm so unit cycling and restore reach Micrometers.
 
 ## 3. Grid System
 
@@ -83,6 +89,11 @@ This document records the ADK-specific modifications applied on top of upstream 
     *   **Function:** `PCB_PAINTER::draw( const PCB_TRACK* aTrack, int aLayer )`
         *   **Change (LAYER_LOCKED_ITEM_SHADOW):** Shadow width is clamped to the track width when it exceeds it.
     *   **Implication:** Visual artifacts are eliminated for nanometer-scale designs while maintaining normal appearance at standard PCB scales.
+
+*   **`common/gal/cairo/cairo_gal.cpp`, `common/gal/cairo/cairo_compositor.cpp`**
+    *   **Function:** `CAIRO_GAL::xform()` output, plus the compositor buffer sizing.
+    *   **Change:** Output pixel coordinates are clamped with `std::clamp( rv.x, -CAIRO_COORD_LIMIT, CAIRO_COORD_LIMIT )` (and the compositor width/height floored with `std::max( ..., 1u )`).
+    *   **Implication:** At nanometer-scale zoom, off-screen coordinates no longer exceed INT32 when pixman computes region extents, eliminating the "pixman_region32_init_rect: Invalid rectangle passed" spam.
 
 ---
 
@@ -178,9 +189,39 @@ Export is now driven by the **Chiplets KiCad plugin** (Tools > External Plugins 
 *   `ExportBoardToChipletFile( BOARD*, const wxString& )` in `export_chiplet.cpp` / `export_chiplet.h`.
 *   `ExportBoardToHyperlynxFile( BOARD*, const wxString& )` in `export_hyperlynx.cpp` / `export_hyperlynx.h`.
 
-Both headers are exposed to Python via `pcbnew/python/swig/pcbnew.i` (`#include` and `%include` of `exporters/export_chiplet.h` and `exporters/export_hyperlynx.h`).
+Both headers are exposed to Python via `pcbnew/python/swig/pcbnew.i` (`#include` and `%include` of `exporters/export_chiplet.h` and `exporters/export_hyperlynx.h`). `BOARD_STACKUP` / `BOARD_STACKUP_ITEM` are additionally exposed via `pcbnew/python/swig/board_stackup.i` (`%include`d from `board.i`), an ADK addition so the Python Hyperlynx writer can iterate the physical stackup.
 
 ### Usage:
 1.  **Setup:** Define `INTERPOSER_LYP` in **Board Setup > Text Variables** with the path to the interposer's `.lyp` file. Optionally set `INTERPOSER_ADAPTER` / `INTERCONNECT_ADAPTER`.
 2.  **Components:** Ensure footprints have `GDS_FILE` and optional `LYP_FILE` fields. Footprints with an `IO_CLASS` field are treated as interposer I/O pads.
 3.  **Export:** Run the Chiplets plugin from **Tools > External Plugins > Chiplet Export**, which calls `ExportBoardToChipletFile`. Run the downstream finalizer `hyp_to_gds.py --update-chiplet-file` to convert the intermediate `pcb-bbox-corner` frame to the canonical GDS-bbox-corner frame.
+
+## 10. Nanometer-scale Numeric Correctness
+
+**Objective:** Stop 32-bit distance/coordinate accumulation from overflowing at nanometer internal-unit scale, where a delta above a few tens of micrometers (about 46 um per axis) exceeds `INT_MAX` once squared.
+
+### Modified Files:
+*   **`pcbnew/board.cpp`**
+    *   **Function:** `BOARD::FindFootprintByPosition` (selection hit-test).
+    *   **Change:** `min_dim` / `alt_min_dim` widened from `int` (`0x7FFFFFFF`) to `int64_t` (`INT64_MAX`), and the squared-distance accumulation cast to `int64_t`. A 32-bit square overflowed at nm IU scale, so the nearest-footprint search could pick the wrong item.
+*   **`pcbnew/router/pns_line.cpp`**
+    *   **Change:** `lastDst` and the squared-distance `d` widened from `int` (`INT_MAX`) to `int64_t` (`INT64_MAX`) for the same reason.
+*   **`pcbnew/router/pns_topology.cpp`**
+    *   **Change:** The differential-pair gap computation switched from a truncating `(int)` cast to `KiROUND( ... )`, so the gap is rounded rather than floored at nanometer scale.
+
+## 11. Zone Filler (nanometer epsilon)
+
+**Objective:** Replace a fixed 1 um pruning epsilon that skipped zone pruning for features below roughly 4 um.
+
+### Modified Files:
+*   **`pcbnew/zone_filler.cpp`**
+    *   **Change:** The fill epsilon moved from `pcbIUScale.mmToIU( 0.001 )` (1 um) to `std::max( half_min_width / 10, 1 )` (a feature-proportional value, minimum 1 IU); the hatch margin likewise became `std::max( aZone->GetMinThickness() / 10, 1 )`.
+    *   **Implication:** Zone fills behave correctly at nanometer scale; note this also changes standard-PCB-scale fill behavior (10% of the min width instead of the old fixed 1 um).
+
+## 12. Stability Fixes
+
+**Objective:** A non-nanometer correctness fix carried in this fork.
+
+### Modified Files:
+*   **`common/eda_base_frame.cpp`, `eeschema/sch_edit_frame.cpp`, `pcbnew/pcb_edit_frame.cpp`**
+    *   **Change:** Autosave history savers are keyed by stable addresses instead of mutable pointers that `SetBoard()` / `SetSchematic()` delete and replace, fixing a use-after-free.
