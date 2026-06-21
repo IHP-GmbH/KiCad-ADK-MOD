@@ -98,13 +98,20 @@ static bool isSafeBareScalar( const std::string& s )
     if( s.empty() )
         return false;
 
-    auto isFirst = []( unsigned char c )
+    // Explicit ASCII ranges (not std::isalnum, which is locale-dependent) so
+    // the predicate matches the Python writer's strict-ASCII regex byte for
+    // byte and the two producers cannot diverge on a non-ASCII byte.
+    auto isAlnum = []( unsigned char c )
     {
-        return std::isalnum( c ) || c == '_';
+        return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || ( c >= '0' && c <= '9' );
     };
-    auto isRest = []( unsigned char c )
+    auto isFirst = [&]( unsigned char c )
     {
-        return std::isalnum( c ) || c == '_' || c == '.' || c == '/' || c == '+' || c == '-';
+        return isAlnum( c ) || c == '_';
+    };
+    auto isRest = [&]( unsigned char c )
+    {
+        return isAlnum( c ) || c == '_' || c == '.' || c == '/' || c == '+' || c == '-';
     };
 
     if( !isFirst( (unsigned char) s[0] ) )
