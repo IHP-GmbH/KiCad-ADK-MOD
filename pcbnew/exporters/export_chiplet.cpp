@@ -27,7 +27,7 @@
 #include <set>
 
 #include <wx/log.h>
-#include <wx/msgdlg.h>
+#include <wx/filefn.h>
 
 #include <kiface_base.h>
 #include <macros.h>
@@ -70,32 +70,93 @@ public:
         if( !m_board )
             return false;
 
-        FILE* f = wxFopen( m_outputFilePath.GetFullPath(), wxT( "wt" ) );
+        // Write to a sibling temp file and atomically rename onto the target
+        // only on full success, so a crash, disk-full, or a mid-write exception
+        // never truncates an existing .chiplet (the artifact the finalizer and
+        // Chiplet Studio depend on).
+        wxFileName tmpName = m_outputFilePath;
+        tmpName.SetExt( m_outputFilePath.GetExt() + wxT( ".tmp" ) );
+        const wxString tmpPath   = tmpName.GetFullPath();
+        const wxString finalPath = m_outputFilePath.GetFullPath();
+
+        FILE* f = wxFopen( tmpPath, wxT( "wt" ) );
 
         if( !f )
         {
-            wxMessageBox( _( "Could not open file for writing." ), _( "Export Error" ) );
+            reportError( wxString::Format( _( "Could not open '%s' for writing." ), tmpPath ) );
             return false;
         }
 
-        LOCALE_IO   toggle; // Switch to C locale for float printing
+        LOCALE_IO toggle; // Switch to C locale for float printing
+
+        bool ok = false;
 
         try
         {
             WriteYAML( f );
+            ok = true;
         }
         catch( const IO_ERROR& ioe )
         {
-            wxMessageBox(ioe.What(), _( "Export Error" ) );
-            fclose( f );
+            reportError( ioe.What() );
+        }
+        catch( const std::exception& e )
+        {
+            reportError( wxString::FromUTF8( e.what() ) );
+        }
+        catch( ... )
+        {
+            reportError( _( "Unknown error while writing the chiplet file." ) );
+        }
+
+        // A write error (e.g. disk full) only surfaces at the stream error
+        // indicator and at fclose, which flushes the buffer. fclose always runs
+        // here, so the handle is never leaked even on the exception paths above.
+        if( ok && ferror( f ) )
+            ok = false;
+
+        if( fclose( f ) != 0 )
+            ok = false;
+
+        if( !ok )
+        {
+            wxRemoveFile( tmpPath ); // never leave a half-written temp behind
             return false;
         }
 
-        fclose( f );
+        if( !wxRenameFile( tmpPath, finalPath, true /* overwrite */ ) )
+        {
+            reportError( wxString::Format( _( "Could not move the temporary file onto '%s'." ),
+                                           finalPath ) );
+            wxRemoveFile( tmpPath );
+            return false;
+        }
+
         return true;
     }
 
 private:
+    // Error/warning reporting that is safe to call from the SWIG-exposed
+    // headless entry point: route through the exporter's REPORTER when the
+    // caller set one (the GUI plugin does), else fall back to the wx log
+    // (stderr in a headless process). Never a modal wxMessageBox, which would
+    // block or crash a process that has no UI.
+    void reportError( const wxString& aMsg )
+    {
+        if( m_reporter )
+            m_reporter->Report( aMsg, RPT_SEVERITY_ERROR );
+        else
+            wxLogError( "%s", aMsg );
+    }
+
+    void reportWarning( const wxString& aMsg )
+    {
+        if( m_reporter )
+            m_reporter->Report( aMsg, RPT_SEVERITY_WARNING );
+        else
+            wxLogWarning( "%s", aMsg );
+    }
+
     void WriteYAML( FILE* f )
     {
         // Data Gathering
@@ -126,7 +187,7 @@ private:
         }
         else
         {
-            wxLogWarning( "Interposer LYP path not found. Set 'INTERPOSER_LYP' in Board Setup > Text Variables." );
+            reportWarning( _( "Interposer LYP path not found. Set 'INTERPOSER_LYP' in Board Setup > Text Variables." ) );
         }
 
         // 2. Identify Footprint Technologies and segregate I/O pads from chiplet dies.
@@ -151,7 +212,8 @@ private:
 
             if( gdsFile.IsEmpty() )
             {
-                 wxLogWarning( "Footprint %s missing GDS_FILE field.", footprint->GetReference() );
+                 reportWarning( wxString::Format( _( "Footprint %s missing GDS_FILE field." ),
+                                                  footprint->GetReference() ) );
             }
 
             if( !lypFile.IsEmpty() )
