@@ -320,6 +320,16 @@ private:
                 techID.Replace( " ", "_" );
                 techID.Replace( ".", "_" );
 
+                // A die LYP whose basename collides with the interposer's
+                // hardcoded technology id ('intm4tm2') but points at a
+                // different file would silently clobber the interposer entry.
+                // Disambiguate the die with its reference so the interposer
+                // keeps its own layer_properties. (Two dies that share a
+                // basename keep dedup'ing to one entry, as before.)
+                if( techID == interposerTechID && techMap.count( interposerTechID )
+                        && techMap[interposerTechID] != lypFile )
+                    techID = techID + "_" + footprint->GetReference();
+
                 techMap[techID] = lypFile;
                 m_componentTechs[footprint] = techID;
             }
@@ -349,9 +359,13 @@ private:
 
         // Assembly Section
         fprintf( f, "assembly:\n" );
-        wxString assemblyName = m_board->GetFileName();
-        wxFileName fn( assemblyName );
-        fprintf( f, "  name: \"%s\"\n", escapeYamlDq( fn.GetName() ).c_str() );
+        wxFileName fn( m_board->GetFileName() );
+        wxString boardName = fn.GetName();
+        if( boardName.IsEmpty() )
+            boardName = m_outputFilePath.GetName(); // unsaved / in-memory board
+        if( boardName.IsEmpty() )
+            boardName = wxT( "assembly" );          // reader requires a non-empty name
+        fprintf( f, "  name: \"%s\"\n", escapeYamlDq( boardName ).c_str() );
         fprintf( f, "  units: \"um\"\n" );
         fprintf( f, "\n" );
 
@@ -452,7 +466,7 @@ private:
         if( techMap.count( interposerTechID ) )
             fprintf( f, "    technology: %s\n", yamlScalar( interposerTechID ).c_str() );
         
-        wxString gdsName = fn.GetName() + ".gds";
+        wxString gdsName = boardName + ".gds";
         fprintf( f, "    layout: \"%s\"\n", escapeYamlDq( gdsName ).c_str() );
         fprintf( f, "    top_cell: \"INTERPOSER\"\n" );
         
