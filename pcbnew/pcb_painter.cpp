@@ -1263,7 +1263,7 @@ void PCB_PAINTER::draw( const PCB_VIA* aVia, int aLayer )
 
         // Clamp shadow width for nanometer designs where default Silk width is disproportionately large
         if( shadowWidth > aVia->GetWidth( currentLayer ) )
-            shadowWidth = aVia->GetWidth( currentLayer ) / 4;
+            shadowWidth = std::max( aVia->GetWidth( currentLayer ) / 4, 1 );
 
         m_gal->SetLineWidth( shadowWidth );
 

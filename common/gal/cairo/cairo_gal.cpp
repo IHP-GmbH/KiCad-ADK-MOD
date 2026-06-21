@@ -1643,10 +1643,7 @@ void CAIRO_GAL::allocateBitmaps()
     // Guard against invalid screen dimensions that would produce
     // invalid Cairo surfaces and trigger pixman errors
     if( m_screenSize.x <= 0 || m_screenSize.y <= 0 )
-    {
-        m_wxBufferWidth = 1;
-        m_screenSize = VECTOR2I( 1, 1 );
-    }
+        m_screenSize = VECTOR2I( 1, 1 ); // m_wxBufferWidth is set from this below
 
     m_wxBufferWidth = m_screenSize.x;
 
