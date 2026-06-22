@@ -217,12 +217,14 @@ APP_SETTINGS_BASE::APP_SETTINGS_BASE( const std::string& aFilename, int aSchemaV
     }
     else
     {
+        // ADK default: micrometres for the micron-scale chiplet/interposer flow.
         m_params.emplace_back( new PARAM<int>( "system.units",
-                &m_System.units, static_cast<int>( EDA_UNITS::MM ) ) );
+                &m_System.units, static_cast<int>( EDA_UNITS::UM ) ) );
     }
 
+    // Keep um as the metric unit restored by the metric/imperial toggle.
     m_params.emplace_back( new PARAM<int>( "system.last_metric_units",
-            &m_System.last_metric_units, static_cast<int>( EDA_UNITS::MM ) ) );
+            &m_System.last_metric_units, static_cast<int>( EDA_UNITS::UM ) ) );
 
     m_params.emplace_back( new PARAM<int>( "system.last_imperial_units",
             &m_System.last_imperial_units, static_cast<int>( EDA_UNITS::MILS ) ) );
