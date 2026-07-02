@@ -127,6 +127,7 @@ void PCB_EDIT_FRAME::doReCreateMenuBar()
     submenuExport->Add( PCB_ACTIONS::exportIDF,         ACTION_MENU::NORMAL, _( "IDFv3..." ) );
     submenuExport->Add( PCB_ACTIONS::exportSTEP,        ACTION_MENU::NORMAL, _( "STEP/GLB/BREP/XAO/PLY/STL..." ) );
     submenuExport->Add( PCB_ACTIONS::exportCmpFile,     ACTION_MENU::NORMAL, _( "Footprint Association (.cmp) File..." ) );
+    submenuExport->Add( PCB_ACTIONS::exportHyperlynx,   ACTION_MENU::NORMAL, _( "Hyperlynx..." ) );
 
     // Add separators between logical groups in export menu
     submenuExport->AppendSeparator();

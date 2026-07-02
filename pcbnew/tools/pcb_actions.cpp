@@ -1337,6 +1337,12 @@ TOOL_ACTION PCB_ACTIONS::exportCmpFile( TOOL_ACTION_ARGS()
         .Tooltip( _( "Export footprint association file (*.cmp) for schematic back annotation" ) )
         .Icon( BITMAPS::export_cmp ) );
 
+TOOL_ACTION PCB_ACTIONS::exportHyperlynx( TOOL_ACTION_ARGS()
+        .Name( "pcbnew.EditorControl.exportHyperlynx" )
+        .FriendlyName( _( "Hyperlynx..." ) )
+        .Tooltip( _( "Export the board in Hyperlynx format." ) )
+        .Icon( BITMAPS::export_file ) );
+
 TOOL_ACTION PCB_ACTIONS::collect3DModels( TOOL_ACTION_ARGS()
         .Name( "pcbnew.EditorControl.collect3DModels" )
         .Scope( AS_GLOBAL )
