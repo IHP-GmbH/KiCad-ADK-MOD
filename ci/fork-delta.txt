@@ -1,0 +1,61 @@
+# The fork's entire delta against upstream KiCad.
+#
+# `base` is the last upstream commit this fork contains; everything after it is
+# ours. Each line below is one path we own, with its status against that base:
+# A added, M modified, D deleted.
+#
+# Every M line is a file that has to be re-merged by hand at the next upstream
+# sync, so the list is meant to stay short and every entry is meant to be
+# deliberate. Regenerate it in the same commit that changes the delta:
+#
+#     python3 ci/check_fork_delta.py --regenerate
+#
+# and let the manifest's own diff be the summary of what the fork's surface
+# just became. See NANOMETER_MODIFICATIONS.md for what the changes do.
+
+base cc80f778ec27ee6d94795f700eeed6fafa87988f
+
+A	.github/workflows/ci.yml
+A	Dockerfile
+A	NANOMETER_MODIFICATIONS.md
+A	ci/check_fork_delta.py
+A	ci/fork-delta.txt
+A	create_appimage.sh
+A	pcbnew/exporters/export_chiplet.cpp
+A	pcbnew/exporters/export_chiplet.h
+A	pcbnew/exporters/export_hyperlynx.h
+A	pcbnew/python/swig/board_stackup.i
+A	run_kicad_from_docker.sh
+M	.github/workflows/lockdown.yml
+M	.gitignore
+M	cmake/FindwxWidgets.cmake
+M	common/eda_base_frame.cpp
+M	common/eda_draw_frame.cpp
+M	common/eda_units.cpp
+M	common/gal/cairo/cairo_compositor.cpp
+M	common/gal/cairo/cairo_gal.cpp
+M	common/paths.cpp
+M	common/settings/app_settings.cpp
+M	common/tool/actions.cpp
+M	common/tool/common_tools.cpp
+M	eeschema/sch_edit_frame.cpp
+M	include/board_design_settings.h
+M	include/tool/actions.h
+M	pcbnew/CMakeLists.txt
+M	pcbnew/board.cpp
+M	pcbnew/dialogs/dialog_track_via_size.cpp
+M	pcbnew/exporters/export_hyperlynx.cpp
+M	pcbnew/menubar_pcb_editor.cpp
+M	pcbnew/pcb_edit_frame.cpp
+M	pcbnew/pcb_edit_frame.h
+M	pcbnew/pcb_painter.cpp
+M	pcbnew/pcb_track.h
+M	pcbnew/python/swig/board.i
+M	pcbnew/python/swig/pcbnew.i
+M	pcbnew/router/pns_line.cpp
+M	pcbnew/router/pns_topology.cpp
+M	pcbnew/toolbars_footprint_editor.cpp
+M	pcbnew/toolbars_footprint_viewer.cpp
+M	pcbnew/toolbars_pcb_editor.cpp
+M	pcbnew/tools/pcb_actions.cpp
+M	pcbnew/zone_filler.cpp

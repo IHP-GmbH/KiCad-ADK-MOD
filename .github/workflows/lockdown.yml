@@ -1,26 +1,60 @@
 name: 'Redirect PRs'
 
+# Upstream KiCad's GitHub mirror closes, locks and spam-labels every pull
+# request, because it really is a mirror of a GitLab project. This repository is
+# not: it is IHP's ADK fork, and the ADK delta on top of KiCad is developed and
+# reviewed in pull requests here. Two consequences, both of which this file gets
+# wrong in its upstream form:
+#
+#   - closing and locking our own pull requests within seconds of opening them
+#     makes a required-status ruleset structurally impossible in this repository,
+#     since no pull request survives long enough to be checked;
+#   - the message tells contributors this is a one-way mirror, which is false.
+#
+# So: fork pull requests only, comment only. Nothing is closed, nothing is
+# locked, nothing is labelled spam. Redirecting a KiCad change to GitLab is
+# still the right advice, and it is given without pretending we accept nothing.
+#
+# pull_request_target rather than pull_request, because the pull_request token
+# is read-only for a pull request opened from a fork, which is precisely the
+# case this workflow exists for. Nothing from the pull request is checked out or
+# executed here; the job posts one comment and ends.
+
 on:
-  pull_request:
+  pull_request_target:
     types: opened
 
+permissions:
+  pull-requests: write
+
 jobs:
-  lockdown:
-    runs-on: ubuntu-latest
+  redirect:
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
     steps:
-      - uses: dessant/repo-lockdown@v2
-        with:
-          github-token: ${{ github.token }}
-          pr-comment: >
-            Thank you for offering to help improve KiCad. 
-            This repository is a one-way mirror that can not accept pull requests.
-            Please submit your merge request to the official KiCad repository 
-            at https://gitlab.com/kicad/code/kicad/-/merge_requests
-            While we know that _your_ PR is not spam, we mark it as such to dissuade
-            the Hacktoberfest PRs.  Please join us over at GitLab.  You can even use
-            your GitHub credentials to log in there without creating a new account.
-          skip-closed-pr-comment: true
-          pr-labels: 'spam'
-          close-pr: true
-          lock-pr: true
-          pr-lock-reason: 'spam'
+      - name: Point the contributor at the right project
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          cat > comment.md <<'EOF'
+          Thanks for offering to help.
+
+          This repository is IHP's ADK fork of KiCad rather than KiCad itself. It
+          carries a small delta on top of upstream: nanometre geometry limits,
+          micrometre units in the PCB tools, and the chiplet and HyperLynx
+          exporters the IHP open ADK flow is built on. `NANOMETER_MODIFICATIONS.md`
+          describes what the changes do, and `ci/fork-delta.txt` lists every file
+          they touch.
+
+          If your change belongs to KiCad proper, sending it to
+          https://gitlab.com/kicad/code/kicad/-/merge_requests gets it to every
+          KiCad user instead of only this fork. You can sign in there with your
+          GitHub account.
+
+          If it belongs to the ADK delta, please open an issue here first so we
+          can agree on the shape before you spend time on it.
+
+          This comment is automatic. The pull request stays open.
+          EOF
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file comment.md
