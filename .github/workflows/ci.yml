@@ -1,0 +1,68 @@
+name: ci
+
+# This fork is not built here. A KiCad build does not fit a hosted runner's
+# budget, and the adk-tools image build compiles it against the rest of the
+# ecosystem, which is the only place the exporters are worth compiling anyway.
+#
+# What is checked here is the one property that has no other guardian: the size
+# and shape of the delta against upstream KiCad. Every upstream file the fork
+# touches is a file somebody re-merges by hand at the next sync, forever, so
+# that surface is worth measuring rather than remembering.
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fork-delta:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # No blobs, no working tree beyond ci/. The check compares tree entry
+          # ids between two commits and never reads a file's contents, so the
+          # whole job stays under a megabyte of transfer on a repository whose
+          # full checkout is hundreds.
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: ci
+
+      - name: Self-test the checker
+        # In the same job as the real run, because a checker that cannot fail
+        # is indistinguishable from `exit 0`, and this one guards a merge.
+        run: python3 ci/check_fork_delta.py --self-test
+
+      - name: Fetch the upstream base commit
+        # The base comes from the manifest, which validates it as a full 40-hex
+        # sha before it is ever handed to git. An abbreviated or empty value
+        # resolves to something else and the comparison then passes against the
+        # wrong tree.
+        run: |
+          base="$(python3 ci/check_fork_delta.py --print-base)"
+          git fetch --filter=blob:none --no-tags --depth=1 origin "$base"
+
+      - name: The delta against upstream is what the fork declares
+        run: python3 ci/check_fork_delta.py
+
+  # The one required status check. A single collector context per repository
+  # means a ruleset names `ci-gate` everywhere and never has to be edited when
+  # the job list inside a workflow changes.
+  ci-gate:
+    needs: [fork-delta]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every gating job to have succeeded
+        # `needs` alone does not gate: with `if: always()` this job runs even
+        # when a dependency failed, so the result has to be compared
+        # explicitly. Without the comparison the gate reports green after its
+        # dependencies went red.
+        run: |
+          echo "fork-delta: ${{ needs.fork-delta.result }}"
+          test "${{ needs.fork-delta.result }}" = "success"
