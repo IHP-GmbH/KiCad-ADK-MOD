@@ -183,7 +183,7 @@ This document records the ADK-specific modifications applied on top of upstream 
 
 ### Invocation (refactored: plugin-driven, not a menu action)
 
-The legacy C++ pcbnew menu actions ("File > Export > Chiplet..." and "File > Export > Hyperlynx...") were removed from this fork. There is no `exportChiplet` action, no `ExportChiplet` handler, and no Export-submenu entry in `pcbnew/menubar_pcb_editor.cpp`, `pcbnew/tools/pcb_actions.{cpp,h}`, or `pcbnew/tools/board_editor_control.cpp`.
+The legacy "File > Export > Chiplet..." menu action was removed from this fork. There is no `exportChiplet` action, no `ExportChiplet` handler, and no Export-submenu entry for it in `pcbnew/menubar_pcb_editor.cpp`, `pcbnew/tools/pcb_actions.{cpp,h}`, or `pcbnew/tools/board_editor_control.cpp`. Upstream's "File > Export > Hyperlynx..." entry is kept; it runs the fork's modified HyperLynx exporter.
 
 Export is now driven by the **Chiplets KiCad plugin** (Tools > External Plugins > Chiplet Export). The underlying C++ exporters remain as SWIG-callable headless functions that the plugin (or any Python script) invokes:
 *   `ExportBoardToChipletFile( BOARD*, const wxString& )` in `export_chiplet.cpp` / `export_chiplet.h`.

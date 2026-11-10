@@ -15,6 +15,7 @@
 
 base cc80f778ec27ee6d94795f700eeed6fafa87988f
 
+A	.github/README.md
 A	.github/workflows/ci.yml
 A	Dockerfile
 A	NANOMETER_MODIFICATIONS.md
